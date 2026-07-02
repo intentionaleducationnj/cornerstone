@@ -2000,14 +2000,19 @@ function renderWeekEditor(){
 }
 /* ---- Editable IEP / 504 + document attachments on the profile ---- */
 function toggleProfileFlag(enc,flag){ const name=decodeURIComponent(enc); const prof=getProfile(name)||{}; saveProfile(name,{[flag]:!prof[flag]}); nav('profile'); }
+function saveFamilyEmail(enc){ const name=decodeURIComponent(enc); const el=document.getElementById('famEmail'); if(!el)return; saveProfile(name,{familyEmail:(el.value||'').trim()}); const b=document.getElementById('famEmailBtn'); if(b){ b.textContent='Saved'; setTimeout(()=>b.textContent='Save Email',1200);} }
 function uploadDoc(enc,input){ const name=decodeURIComponent(enc); const f=input.files&&input.files[0]; if(!f)return; if(f.size>4*1024*1024){ alert('Please choose a file under 4 MB. Documents are stored securely in this browser.'); input.value=''; return; } const rd=new FileReader(); rd.onload=function(){ const prof=getProfile(name)||{}; const docs=(prof.documents||[]).slice(); docs.push({id:uid(),name:f.name,type:f.type||'file',size:f.size,dataUrl:rd.result,added:new Date().toISOString().slice(0,10)}); try{ saveProfile(name,{documents:docs}); }catch(e){ alert('This file is too large to store in the browser. Try a smaller file.'); return; } nav('profile'); }; rd.readAsDataURL(f); }
 function removeDoc(enc,id){ const name=decodeURIComponent(enc); if(!confirm('Remove this document?'))return; const prof=getProfile(name)||{}; saveProfile(name,{documents:(prof.documents||[]).filter(d=>d.id!==id)}); nav('profile'); }
 function fileSize(b){ return b>=1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB'; }
 function supportDocsHTML(name){
   const enc=encodeURIComponent(name), prof=getProfile(name)||{}, docs=prof.documents||[];
   return `<div class="card"><div class="eyebrow">Support &amp; Documents</div><h2>Plans &amp; attachments</h2>
-    <p class="lead">Flag ${esc(name.split(' ')[0])}'s learning plans and keep important documents right here — IEPs, 504 plans, evaluations, work samples, or anything you want on file.</p>
-    <div class="stdom">Learning plan</div>
+    <p class="lead">Flag ${esc(name.split(' ')[0])}'s learning plans, keep the family's contact on file, and store important documents right here — IEPs, 504 plans, evaluations, work samples, or anything you want on file.</p>
+    <div class="stdom">Family email</div>
+    <div class="report-actions" style="margin-top:6px"><input id="famEmail" type="email" placeholder="parent@example.com" value="${esc(prof.familyEmail||'')}" style="max-width:300px">
+      <button class="btn sm" id="famEmailBtn" onclick="saveFamilyEmail('${enc}')">Save Email</button>
+      <span class="footnote">Used to pre-address the family report so you can send it in one click.</span></div>
+    <div class="stdom" style="margin-top:16px">Learning plan</div>
     <div class="flagrow">
       <button class="flagchip ${prof.iep?'on':''}" onclick="toggleProfileFlag('${enc}','iep')">${prof.iep?'✓ ':''}IEP</button>
       <button class="flagchip ${prof.plan504?'on':''}" onclick="toggleProfileFlag('${enc}','plan504')">${prof.plan504?'✓ ':''}504 Plan</button>
@@ -3040,7 +3045,8 @@ function emailFamily(){ const m=LAST.meta,r=LAST.result,f=familyData(m,r);
   ].filter(x=>x!==undefined);
   const body=lines.join("\n").replace(/\n{3,}/g,"\n\n");
   const subject=`A Note for the Family of ${f.name} — Cornerstone ${r.domainKey==='literacy'?'Literacy':'Math'} Assessment`;
-  window.location.href=`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; }
+  const to=encodeURIComponent(((getProfile(m.student)||{}).familyEmail)||'');
+  window.location.href=`mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; }
 function renderDashboard(){
   const list=loadSessions().sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id));
   app.innerHTML=`<div class="screen">
