@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%230d0d0d'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-style='italic' fill='%23ffffff' font-family='Georgia,serif'%3Eie%3C/text%3E%3C/svg%3E">
 <style>
 /* ===================================================================
-   PREMIUM TUTORING & CONSULTING — FOUNDATIONS DIAGNOSTIC (v2)
+   INTENTIONAL EDUCATION — THE CORNERSTONE ASSESSMENT
    Framework: The Intentional Education 4D Learning Cycle
      DISCOVER → DEVELOP → DEEPEN → DEMONSTRATE  (NJ quarterly calendar)
    Grounded in: Science of Reading (Scarborough's Rope), DIBELS 8
@@ -1535,11 +1535,16 @@ const SKILL_GROUPS = [
   {key:'alpha', label:'Alphabet & Letter Sounds'},
   {key:'pa',    label:'Phonemic Awareness'},
   {key:'phonics',label:'Phonics & Decoding'},
+  {key:'wordrec',label:'Word Recognition & Fluency'},
+  {key:'spell', label:'Spelling & Encoding'},
+  {key:'vocab', label:'Vocabulary & Language'},
+  {key:'comp',  label:'Comprehension'},
   {key:'sl',    label:'Speaking & Listening'},
   {key:'mnum',  label:'Math · Number Sense & Counting'},
   {key:'mop',   label:'Math · Operations & Fluency'},
   {key:'mpvf',  label:'Math · Place Value & Fractions'},
-  {key:'mgeo',  label:'Math · Measurement & Geometry'}
+  {key:'mgeo',  label:'Math · Measurement & Geometry'},
+  {key:'mdata', label:'Math · Data & Patterns'}
 ];
 const SKILL_PROBES = [
   // ---- Alphabet & letter sounds ----
@@ -1721,7 +1726,219 @@ const SKILL_PROBES = [
   {id:'sk_m_shapes', group:'mgeo', title:'Shapes & Attributes', standard:'CCSS K.G.2 / 2.G.1', band:'K–2', domain:'math',
    script:"Show or name shapes. <span class='say'>“Tell me about these shapes.”</span>",
    items:[{label:'Names a triangle',hint:''},{label:'Sides on a square?',hint:'4'},{label:'Names a hexagon',hint:'6 sides'},{label:'2D (flat) vs 3D (solid)?',hint:'identify'}],
-   interventions:['Shape hunts around the room','Sort shapes by number of sides','Build shapes with sticks and clay']}
+   interventions:['Shape hunts around the room','Sort shapes by number of sides','Build shapes with sticks and clay']},
+  /* ===== Phonemic Awareness — additional ===== */
+  {id:'sk_word_aware', group:'pa', title:'Word Awareness', standard:'CCSS RF.K.1', band:'PK–K', domain:'literacy',
+   script:"Say a short sentence. <span class='say'>“Clap once for each word: The dog ran.”</span>",
+   items:[{label:'I see a cat (4 words)',hint:'4'},{label:'We run fast (3)',hint:'3'},{label:'Birds fly (2)',hint:'2'},{label:'The sun is hot (4)',hint:'4'}],
+   interventions:['Clap or tap one time per word','Push a counter forward per word','Count words in short sentences']},
+  {id:'sk_syll_blend', group:'pa', title:'Syllable Blending', standard:'CCSS RF.K.2b', band:'PK–K', domain:'literacy',
+   script:"<span class='say'>“I'll say a word in parts; you put it together. Rain… bow.”</span>",
+   items:[{label:'rain…bow',hint:'rainbow'},{label:'but…ter…fly',hint:'butterfly'},{label:'pen…cil',hint:'pencil'},{label:'ba…na…na',hint:'banana'}],
+   interventions:['Say-it-slow, say-it-fast','Blend with claps per part','Use a robot voice for parts']},
+  {id:'sk_syll_seg', group:'pa', title:'Syllable Segmenting', standard:'CCSS RF.K.2b', band:'PK–K', domain:'literacy',
+   script:"<span class='say'>“Clap the parts in the word. Butterfly.”</span>",
+   items:[{label:'baby (2)',hint:'2'},{label:'elephant (3)',hint:'3'},{label:'pencil (2)',hint:'2'},{label:'dog (1)',hint:'1'}],
+   interventions:['Clap or tap each syllable','Hand under the chin to feel beats','March syllables while walking']},
+  {id:'sk_onset', group:'pa', title:'Onset-Rime Blending', standard:'CCSS RF.K.2c', band:'K', domain:'literacy',
+   script:"<span class='say'>“Put the parts together: /c/ … at.”</span>",
+   items:[{label:'/c/ … at',hint:'cat'},{label:'/s/ … un',hint:'sun'},{label:'/m/ … ap',hint:'map'},{label:'/tr/ … ip',hint:'trip'}],
+   interventions:['Blend onset + rime with a pause','Word-family sorting (-at, -ip)','Slide sounds together on a ramp']},
+  /* ===== Alphabet & print — additional ===== */
+  {id:'sk_print', group:'alpha', title:'Print Concepts', standard:'CCSS RF.K.1', band:'PK–K', domain:'literacy',
+   script:"With a book. <span class='say'>“Show me the front, where we start reading, which way we go, one word, one letter.”</span>",
+   items:[{label:'Front of book'},{label:'Where to start reading'},{label:'Left-to-right direction'},{label:'Points to one word'},{label:'Points to one letter'}],
+   interventions:['Track print with a finger while reading','Talk about covers, titles, authors','Point to each word as you read']},
+  {id:'sk_form', group:'alpha', title:'Letter Formation', standard:'CCSS L.K.1a', band:'PK–1', domain:'literacy',
+   script:"<span class='say'>“Write these letters for me.”</span> Check formation and legibility.",
+   items:[{label:'Writes their name'},{label:'Forms letters with correct start/direction'},{label:'Letters sit on the line'},{label:'Legible to a reader'}],
+   interventions:['Trace and copy with a start-dot','Sky-ground handwriting lines','Multisensory letter tracing']},
+  /* ===== Phonics — additional ===== */
+  {id:'sk_variant', group:'phonics', title:'Variant Vowels (oo, aw, au, al)', standard:'CCSS RF.2.3', band:'2', read:true, domain:'literacy',
+   script:"Point to each word. <span class='say'>“Read this word.”</span>",
+   items:[{label:'moon'},{label:'book'},{label:'saw'},{label:'haul'},{label:'walk'}],
+   interventions:['Sort the two sounds of oo (moon/book)','Keyword cards for aw/au/al','Word sorts by vowel pattern']},
+  {id:'sk_softcg', group:'phonics', title:'Soft c & g; -dge, -tch', standard:'CCSS RF.2.3', band:'2', read:true, domain:'literacy',
+   script:"Point to each word. <span class='say'>“Read this word.”</span>",
+   items:[{label:'city'},{label:'gem'},{label:'bridge'},{label:'catch'},{label:'cage'}],
+   interventions:['c/g are soft before e, i, y','Contrast cat vs city, got vs gem','Practice -dge and -tch endings']},
+  {id:'sk_inflect', group:'phonics', title:'Inflectional Endings (-s, -ed, -ing)', standard:'CCSS RF.1.3f / L.1.4c', band:'1–2', read:true, domain:'literacy',
+   script:"Point to each word. <span class='say'>“Read this word and the ending.”</span>",
+   items:[{label:'jumping',hint:'-ing'},{label:'walked',hint:'-ed'},{label:'runs',hint:'-s'},{label:'hopped',hint:'double p'},{label:'smiling',hint:'drop e'}],
+   interventions:['Peel off the ending, read the base','Doubling and drop-e rules','Sort -ed sounds (/t/ /d/ / id/)']},
+  {id:'sk_roots', group:'phonics', title:'Greek & Latin Roots', standard:'CCSS RF.4.3 / L.4.4b', band:'4', read:true, domain:'literacy',
+   script:"Point to each word. <span class='say'>“Read this word and tell me the root's meaning.”</span>",
+   items:[{label:'telephone',hint:'tele=far, phone=sound'},{label:'dictionary',hint:'dict=say'},{label:'spectator',hint:'spect=see'},{label:'structure',hint:'struct=build'},{label:'portable',hint:'port=carry'}],
+   interventions:['Root meaning cards (port=carry…)','Build word families from a root','Break long words at the root']},
+  /* ===== Word Recognition & Fluency ===== */
+  {id:'sk_hfw', group:'wordrec', title:'High-Frequency (Heart) Words', standard:'CCSS RF.1.3g / RF.2.3f', band:'K–2', read:true, domain:'literacy',
+   script:"Point to each. <span class='say'>“Read this word.”</span>",
+   items:[{label:'the'},{label:'said'},{label:'you'},{label:'was'},{label:'because'},{label:'their'}],
+   interventions:['Heart-word mapping for tricky parts','Daily flash review','Read the words in sentences']},
+  {id:'sk_irreg', group:'wordrec', title:'Irregular ("Red") Words', standard:'CCSS RF.2.3f', band:'1–3', read:true, domain:'literacy',
+   script:"Point to each. <span class='say'>“Read this word.”</span> (Parts don't follow the rules.)",
+   items:[{label:'one'},{label:'two'},{label:'could'},{label:'been'},{label:'friend'}],
+   interventions:['Map the regular vs heart (irregular) parts','Trace and say the tricky part','Overlearn with quick daily practice']},
+  {id:'sk_nwf', group:'wordrec', title:'Nonsense-Word Reading', standard:'CCSS RF.K.3 / DIBELS NWF', band:'K–1', read:true, domain:'literacy',
+   script:"Point to each. <span class='say'>“These are made-up words. Read them by the sounds.”</span>",
+   items:[{label:'vac'},{label:'nit'},{label:'sem'},{label:'lup'},{label:'dob'}],
+   interventions:['Blend continuously by sound','Sound-by-sound then whole word','Decodable nonsense-word drills']},
+  {id:'sk_wordlist', group:'wordrec', title:'Word-List Accuracy', standard:'CCSS RF.2.4', band:'1–3', read:true, domain:'literacy',
+   script:"Point to each. <span class='say'>“Read these words as smoothly as you can.”</span>",
+   items:[{label:'plant'},{label:'brush'},{label:'chart'},{label:'spoke'},{label:'grinch'},{label:'stretch'}],
+   interventions:['Repeated reading of the list','Chunk letter patterns','Accuracy before speed']},
+  /* ===== Spelling & Encoding ===== */
+  {id:'sk_enc_cvc', group:'spell', title:'Spell CVC Words', standard:'CCSS L.K.2c', band:'K–1', domain:'literacy',
+   script:"<span class='say'>“Spell the word I say.”</span>",
+   items:[{label:'map'},{label:'sit'},{label:'bed'},{label:'top'},{label:'run'}],
+   interventions:['Sound boxes (Elkonin) to spell','Tap each sound, then write','Segment then spell']},
+  {id:'sk_enc_blend', group:'spell', title:'Spell Digraphs & Blends', standard:'CCSS L.1.2', band:'1', domain:'literacy',
+   script:"<span class='say'>“Spell the word I say.”</span>",
+   items:[{label:'ship'},{label:'chin'},{label:'stop'},{label:'hand'},{label:'bank'}],
+   interventions:['Two letters, one sound for digraphs','Stretch and spell each sound','Mark the blend, then write']},
+  {id:'sk_enc_vce', group:'spell', title:'Spell VCe & Vowel Teams', standard:'CCSS L.1.2 / L.2.2', band:'1–2', domain:'literacy',
+   script:"<span class='say'>“Spell the word I say.”</span>",
+   items:[{label:'cake'},{label:'bike'},{label:'rain'},{label:'boat'},{label:'feet'}],
+   interventions:['Magic-e for long vowels','Vowel-team choices (ai/ay, ee/ea)','Say the word, count the sounds, spell']},
+  {id:'sk_enc_r', group:'spell', title:'Spell R-Controlled & Diphthongs', standard:'CCSS L.2.2', band:'2', domain:'literacy',
+   script:"<span class='say'>“Spell the word I say.”</span>",
+   items:[{label:'car'},{label:'bird'},{label:'corn'},{label:'coin'},{label:'cloud'}],
+   interventions:['Bossy-r keyword cards','Group er/ir/ur','Diphthong pairs oi/oy, ou/ow']},
+  {id:'sk_enc_multi', group:'spell', title:'Spell Multisyllabic & Affixes', standard:'CCSS L.3.2 / L.4.2', band:'3–4', domain:'literacy',
+   script:"<span class='say'>“Spell the word I say. Think about the parts.”</span>",
+   items:[{label:'unhappy'},{label:'jumping'},{label:'careful'},{label:'action'},{label:'rabbit'}],
+   interventions:['Spell by syllable chunks','Add prefixes/suffixes to a base','Doubling and drop-e rules']},
+  {id:'sk_dictation', group:'spell', title:'Sentence Dictation', standard:'CCSS L.1.2 / L.2.2', band:'1–3', domain:'literacy',
+   script:"<span class='say'>“Write the sentence I say.”</span> Score each feature.",
+   items:[{label:'Capital at the start'},{label:'Words spelled correctly'},{label:'Spaces between words'},{label:'End punctuation'}],
+   interventions:['Say-count-write each word','Editing checklist (capital, punctuation)','Dictate short, then longer sentences']},
+  /* ===== Vocabulary & Language ===== */
+  {id:'sk_v_cat', group:'vocab', title:'Categories, Synonyms & Antonyms', standard:'CCSS L.K.5 / L.2.5', band:'K–2', domain:'literacy',
+   script:"Ask each. <span class='say'>“Answer these word questions.”</span>",
+   items:[{label:'Name 3 animals',hint:'any 3'},{label:'A word that means happy',hint:'glad'},{label:'Opposite of big',hint:'small'},{label:'Which is a fruit: apple or chair?',hint:'apple'}],
+   interventions:['Sort words into categories','Synonym/antonym word webs','Talk about words during read-alouds']},
+  {id:'sk_v_context', group:'vocab', title:'Context Clues', standard:'CCSS L.2.4a / L.3.4a', band:'2–4', domain:'literacy',
+   script:"Read the sentence. <span class='say'>“What does the underlined word mean? What is your clue?”</span>",
+   items:[{label:'The soil was so ARID that plants died.',hint:'dry'},{label:'She was FATIGUED after the long run.',hint:'tired'},{label:'The GIGANTIC truck filled the road.',hint:'huge'},{label:'He GRASPED the rope tightly.',hint:'held'}],
+   interventions:['Underline clue words in the sentence','Try a guess, then reread to check','Substitute a word that fits']},
+  {id:'sk_v_morph', group:'vocab', title:'Morphological Meaning', standard:'CCSS L.3.4b / L.4.4b', band:'3–4', domain:'literacy',
+   script:"Ask each. <span class='say'>“Use the word parts to figure out the meaning.”</span>",
+   items:[{label:'prefix un- means',hint:'not'},{label:'suffix -ful means',hint:'full of'},{label:'re- in rebuild means',hint:'again'},{label:'-less in careless means',hint:'without'}],
+   interventions:['Affix meaning cards','Build and break words by part','Match prefixes to meanings']},
+  {id:'sk_v_multi', group:'vocab', title:'Multiple-Meaning Words', standard:'CCSS L.4.5c', band:'3–5', domain:'literacy',
+   script:"Ask each. <span class='say'>“This word has more than one meaning — give me two.”</span>",
+   items:[{label:'bat',hint:'animal / baseball bat'},{label:'bark',hint:'dog sound / tree bark'},{label:'trunk',hint:'tree / car / elephant'},{label:'right',hint:'correct / direction'}],
+   interventions:['Draw the two meanings','Use each meaning in a sentence','Notice context to pick the meaning']},
+  {id:'sk_v_fig', group:'vocab', title:'Figurative Language', standard:'CCSS L.4.5a / L.5.5a', band:'3–5', domain:'literacy',
+   script:"Read each. <span class='say'>“What does this really mean?”</span>",
+   items:[{label:'It is raining cats and dogs.',hint:'raining hard'},{label:'She is as brave as a lion.',hint:'very brave (simile)'},{label:'The stars danced in the sky.',hint:'twinkled (personification)'},{label:'Break a leg!',hint:'good luck'}],
+   interventions:['Explain similes and idioms','Draw the literal vs real meaning','Collect figurative phrases from books']},
+  /* ===== Comprehension ===== */
+  {id:'sk_c_listen', group:'comp', title:'Listening Comprehension', standard:'CCSS RL.K.1 / RL.1.1', band:'PK–2', domain:'literacy',
+   script:"Read aloud: <span class='say'>“Mia lost her red ball at the park. She looked under the slide and found it. She was so happy.”</span> Then ask.",
+   items:[{label:'Who lost a ball?',hint:'Mia'},{label:'What did she lose?',hint:'red ball'},{label:'Where did she find it?',hint:'under the slide'},{label:'How did she feel?',hint:'happy'}],
+   interventions:['Read aloud with who/what/where questions','Retell with picture cards','Pause and predict during stories']},
+  {id:'sk_c_literal', group:'comp', title:'Literal Comprehension (Who/What/Where/When)', standard:'CCSS RL.2.1 / RI.2.1', band:'1–4', domain:'literacy',
+   script:"Child reads: <span class='say'>“On Saturday, Sam planted seeds in the garden. By July, tall sunflowers grew.”</span> Then ask.",
+   items:[{label:'WHO planted seeds?',hint:'Sam'},{label:'WHAT did he plant?',hint:'seeds'},{label:'WHERE did he plant them?',hint:'the garden'},{label:'WHEN did he plant them?',hint:'Saturday'}],
+   interventions:['Underline text evidence for each answer','Question-word chart (who/what/where/when)','Reread to locate the detail']},
+  {id:'sk_c_infer', group:'comp', title:'Inferential Comprehension (Why/How/Predict)', standard:'CCSS RL.3.1 / RL.4.1', band:'2–5', domain:'literacy',
+   script:"Child reads: <span class='say'>“Leo put on his coat and boots and grabbed an umbrella before opening the door.”</span> Then ask.",
+   items:[{label:'What is the weather like? How do you know?',hint:'rainy/cold — coat, boots, umbrella'},{label:'Why did Leo grab an umbrella?',hint:'to stay dry'},{label:'What might happen next?',hint:'he goes outside'},{label:'How is Leo probably feeling?',hint:'prepared/ready'}],
+   interventions:['Model: clue + what I already know','Ask why and how questions','Support inferences with evidence']},
+  {id:'sk_c_main', group:'comp', title:'Main Idea & Key Details', standard:'CCSS RI.2.2 / RI.3.2', band:'2–5', domain:'literacy',
+   script:"Child reads: <span class='say'>“Bees help plants grow. They carry pollen from flower to flower. Many foods we eat depend on bees.”</span> Then ask.",
+   items:[{label:'What is the main idea?',hint:'bees help plants/foods'},{label:'One detail that supports it',hint:'carry pollen'},{label:'A good title for this?',hint:'Why Bees Matter'},{label:'Is this about bees or cars?',hint:'bees'}],
+   interventions:['Main-idea and details organizer','Ask: what is this mostly about?','Pick the best title']},
+  {id:'sk_c_retell', group:'comp', title:'Story Elements & Retell', standard:'CCSS RL.K.3 / RL.2.5', band:'K–3', domain:'literacy',
+   script:"After a short story, <span class='say'>“Tell me the story in order.”</span> Check each element.",
+   items:[{label:'Names characters'},{label:'Tells the setting'},{label:'Tells the problem'},{label:'Tells the solution'},{label:'Events in order'}],
+   interventions:['Retell with a story map','First / next / then / last','Retell with picture cards']},
+  {id:'sk_c_sequence', group:'comp', title:'Sequence of Events', standard:'CCSS RI.1.3 / RL.2.5', band:'1–3', domain:'literacy',
+   script:"After a story or set of steps, <span class='say'>“What happened first, next, and last?”</span>",
+   items:[{label:'Tells what happened first'},{label:'Tells what happened next'},{label:'Tells what happened last'},{label:'Uses order words (first, then)'}],
+   interventions:['Sequence with first/next/last cards','Number the events','Retell steps of a routine']},
+  {id:'sk_c_features', group:'comp', title:'Text Features', standard:'CCSS RI.1.5 / RI.2.5', band:'1–4', domain:'literacy',
+   script:"With an informational text. <span class='say'>“Find and tell me what these help us do.”</span>",
+   items:[{label:'Points to the title/heading'},{label:'Uses a picture/caption for meaning'},{label:'Finds a bold word'},{label:'Explains what a feature is for'}],
+   interventions:['Feature hunt in nonfiction','Discuss how each feature helps','Preview text features before reading']},
+  {id:'sk_c_written', group:'comp', title:'Written Response (Text Evidence)', standard:'CCSS W.2.1 / W.3.1', band:'2–5', domain:'literacy',
+   script:"After reading, <span class='say'>“Write a few sentences answering the question. Use the text.”</span> Score each rubric point.",
+   items:[{label:'Capital Letters'},{label:'Understanding (answers the prompt)'},{label:'Punctuation'},{label:'Spelling'},{label:'Context (uses a detail from the text)'}],
+   interventions:['Restate-answer-cite-explain frame','Sentence starters for evidence','Revise with a conventions checklist']},
+  /* ===== Math · Number Sense — additional ===== */
+  {id:'sk_m_cardinal', group:'mnum', title:'One-to-One Counting & Cardinality', standard:'CCSS K.CC.4', band:'PK–K', domain:'math',
+   script:"Show a set of objects. <span class='say'>“Count these. How many in all?”</span>",
+   items:[{label:'Touches each once while counting'},{label:'Counts 5 objects',hint:'5'},{label:'Counts 8 objects',hint:'8'},{label:'Says how many in all (last number)',hint:'cardinality'}],
+   interventions:['Touch-and-count with manipulatives','Ask how many in all after counting','Line objects up to count']},
+  {id:'sk_m_write', group:'mnum', title:'Numeral Writing', standard:'CCSS K.CC.3', band:'K', domain:'math',
+   script:"<span class='say'>“Write these numbers for me.”</span>",
+   items:[{label:'Writes 0–5 legibly'},{label:'Writes 6–10 legibly'},{label:'Numbers face the right way'},{label:'Writes a two-digit number (e.g., 14)'}],
+   interventions:['Number formation with start-dots','Trace then copy numerals','Sand/tray numeral practice']},
+  {id:'sk_m_skip', group:'mnum', title:'Skip Counting', standard:'CCSS 2.NBT.2', band:'1–2', domain:'math',
+   script:"<span class='say'>“Count by tens… by fives… by twos.”</span>",
+   items:[{label:'Counts by 10s to 100'},{label:'Counts by 5s to 50'},{label:'Counts by 2s to 20'},{label:'Continues a pattern (15, 20, __)',hint:'25'}],
+   interventions:['Skip-count on a number line','Count coins (10s, 5s)','Songs and chants for skip counting']},
+  /* ===== Math · Operations — additional ===== */
+  {id:'sk_m_evenodd', group:'mop', title:'Even & Odd', standard:'CCSS 2.OA.3', band:'2', domain:'math',
+   script:"<span class='say'>“Is this number even or odd?”</span>",
+   items:[{label:'8',hint:'even'},{label:'5',hint:'odd'},{label:'14',hint:'even'},{label:'9',hint:'odd'}],
+   interventions:['Pair objects to test even/odd','Even numbers end in 0,2,4,6,8','Circle pairs to check']},
+  {id:'sk_m_arrays', group:'mop', title:'Arrays & Repeated Addition', standard:'CCSS 2.OA.4 / 3.OA.1', band:'2–3', domain:'math',
+   script:"Show or draw rows. <span class='say'>“How many in all?”</span>",
+   items:[{label:'3 rows of 4 = ?',hint:'12'},{label:'5 + 5 + 5 = ?',hint:'15'},{label:'2 rows of 6 = ?',hint:'12'},{label:'Write it as multiplication',hint:'e.g., 3×4'}],
+   interventions:['Build arrays with counters','Skip-count the rows','Connect repeated addition to ×']},
+  {id:'sk_m_word', group:'mop', title:'Word Problems', standard:'CCSS 1.OA.1 / 2.OA.1', band:'1–3', domain:'math',
+   script:"Read each aloud. <span class='say'>“Show your thinking and tell me the answer.”</span>",
+   items:[{label:'8 apples, 3 given away. Left?',hint:'5'},{label:'6 and 7 more. In all?',hint:'13'},{label:'Had some, got 4, now 10. Started with?',hint:'6'},{label:'5 bags of 2. Total?',hint:'10'}],
+   interventions:['Draw a picture or bar model','Underline the question first','Decide add or subtract from the action']},
+  {id:'sk_m_mdmult', group:'mop', title:'Multi-Digit Multiplication', standard:'CCSS 4.NBT.5', band:'4', read:true, domain:'math',
+   script:"Show each. <span class='say'>“Multiply. Show your strategy.”</span>",
+   items:[{label:'34 × 6',hint:'204'},{label:'27 × 40',hint:'1080'},{label:'123 × 4',hint:'492'},{label:'25 × 18',hint:'450'}],
+   interventions:['Area model / partial products','Estimate to check','Standard algorithm by place value']},
+  {id:'sk_m_mddiv', group:'mop', title:'Multi-Digit Division', standard:'CCSS 4.NBT.6', band:'4', read:true, domain:'math',
+   script:"Show each. <span class='say'>“Divide. Give the quotient and any remainder.”</span>",
+   items:[{label:'84 ÷ 4',hint:'21'},{label:'92 ÷ 3',hint:'30 r2'},{label:'156 ÷ 6',hint:'26'},{label:'75 ÷ 4',hint:'18 r3'}],
+   interventions:['Partial-quotients division','Estimate the quotient first','Interpret the remainder in context']},
+  /* ===== Math · Place Value & Fractions — additional ===== */
+  {id:'sk_m_fracline', group:'mpvf', title:'Fractions on a Number Line', standard:'CCSS 3.NF.2', band:'3', domain:'math',
+   script:"With a 0–1 number line. <span class='say'>“Show me where this fraction goes.”</span>",
+   items:[{label:'1/2',hint:'middle'},{label:'1/4',hint:'quarter'},{label:'3/4',hint:'near 1'},{label:'2/3',hint:'past middle'}],
+   interventions:['Fold a strip into equal parts','Count equal jumps from 0','Label benchmark fractions']},
+  {id:'sk_m_fraceq', group:'mpvf', title:'Equivalent Fractions', standard:'CCSS 3.NF.3 / 4.NF.1', band:'3–4', domain:'math',
+   script:"<span class='say'>“Find a fraction equal to this one.”</span>",
+   items:[{label:'1/2 = ?/4',hint:'2/4'},{label:'1/3 = ?/6',hint:'2/6'},{label:'2/4 simplifies to',hint:'1/2'},{label:'3/4 = ?/8',hint:'6/8'}],
+   interventions:['Fraction bars to match sizes','Multiply/divide top and bottom equally','Fold shapes to show equal amounts']},
+  {id:'sk_m_decimals', group:'mpvf', title:'Decimals (Tenths & Hundredths)', standard:'CCSS 4.NF.6 / 5.NBT.3', band:'4–5', read:true, domain:'math',
+   script:"Show each. <span class='say'>“Answer about these decimals.”</span>",
+   items:[{label:'Write 7/10 as a decimal',hint:'0.7'},{label:'Write 0.45 as a fraction',hint:'45/100'},{label:'Compare 0.3 and 0.30',hint:'equal'},{label:'Bigger: 0.7 or 0.65?',hint:'0.7'}],
+   interventions:['Tenths/hundredths grids','Place-value chart with decimals','Number-line decimal comparison']},
+  /* ===== Math · Measurement & Geometry — additional ===== */
+  {id:'sk_m_length', group:'mgeo', title:'Measuring Length', standard:'CCSS 1.MD.2 / 2.MD.1', band:'1–2', domain:'math',
+   script:"With a ruler and objects. <span class='say'>“Measure and compare.”</span>",
+   items:[{label:'Lines up the ruler at 0 (no gaps)'},{label:'Measures a pencil in inches',hint:'count units'},{label:'Which is longer, A or B?'},{label:'How much longer is 9 in than 4 in?',hint:'5 in'}],
+   interventions:['Start at zero, no gaps or overlaps','Estimate then measure','Compare and find the difference']},
+  {id:'sk_m_area', group:'mgeo', title:'Area & Perimeter', standard:'CCSS 3.MD.7 / 3.MD.8', band:'3–4', domain:'math',
+   script:"Show a rectangle. <span class='say'>“Find the area and perimeter.”</span>",
+   items:[{label:'Area of 4 × 6',hint:'24'},{label:'Perimeter of 4 × 6',hint:'20'},{label:'Area = length × ___',hint:'width'},{label:'Square with side 5: area?',hint:'25'}],
+   interventions:['Tile the rectangle to find area','Count units around for perimeter','Connect area to multiplication']},
+  {id:'sk_m_3d', group:'mgeo', title:'3D Shapes', standard:'CCSS K.G.3 / 2.G.1', band:'K–2', domain:'math',
+   script:"Show or name solids. <span class='say'>“Name these 3D shapes.”</span>",
+   items:[{label:'Names a cube'},{label:'Names a sphere'},{label:'Names a cylinder'},{label:'Flat (2D) vs solid (3D)?'}],
+   interventions:['Sort real 3D objects','Compare flat vs solid','Find 3D shapes around the room']},
+  {id:'sk_m_position', group:'mgeo', title:'Positional Words', standard:'CCSS K.G.1', band:'PK–K', domain:'math',
+   script:"Use a toy. <span class='say'>“Put the bear ON TOP of, UNDER, NEXT TO, and BEHIND the cup.”</span>",
+   items:[{label:'on top'},{label:'under'},{label:'next to'},{label:'behind'}],
+   interventions:['Movement games with position words','Describe where objects are','Picture-direction games']},
+  /* ===== Math · Data & Patterns ===== */
+  {id:'sk_m_graph', group:'mdata', title:'Graphs & Data', standard:'CCSS 1.MD.4 / 3.MD.3', band:'1–3', domain:'math',
+   script:"Show a picture or bar graph. <span class='say'>“Use the graph to answer.”</span>",
+   items:[{label:'Reads a value from the graph'},{label:'Which has the most?'},{label:'How many more in A than B?',hint:'subtract'},{label:'Total across categories',hint:'add'}],
+   interventions:['Build a picture/bar graph together','Compare categories (more/fewer)','Two-step questions from data']},
+  {id:'sk_m_pattern', group:'mdata', title:'Patterns', standard:'CCSS K.OA / 4.OA.5', band:'PK–4', domain:'math',
+   script:"<span class='say'>“What comes next in the pattern?”</span>",
+   items:[{label:'red, blue, red, blue, __',hint:'red'},{label:'2, 4, 6, __',hint:'8'},{label:'circle, square, circle, __',hint:'square'},{label:'5, 10, 15, __',hint:'20'}],
+   interventions:['Copy, then extend the pattern','Name the pattern rule','Make patterns with objects and numbers']}
 ];
 function skillById(id){ return SKILL_PROBES.find(s=>s.id===id); }
 function startProbe(enc, skillId){ const name=decodeURIComponent(enc); const last=loadSessions().filter(s=>s.student===name).sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id))[0]; S.probe={ skillId, scholar:name, grade:(last&&last.grade)||'K', marks:[], notes:'', evaluator:getEvaluators()[0]||'' }; nav('probe'); }
@@ -2616,7 +2833,7 @@ function stopAssessment(){
     }
   }
   ss.discontinued=true;
-  if(early && lower && !hasAssessment(lower,ss.domainKey)) ss.regressionNote=`Showed early struggle at ${gradeLabel(ss.grade)} level; recommend reassessing at ${gradeLabel(lower)} (that battery is on the build roadmap).`;
+  if(early && lower && !hasAssessment(lower,ss.domainKey)) ss.regressionNote=`Showed early struggle at ${gradeLabel(ss.grade)} level; recommend reassessing at ${gradeLabel(lower)}, or run a targeted skill check at that level.`;
   finishAssess();
 }
 function nextSub(){ const n=currentSubtests().length; if(S.session.idx<n-1){ S.session.idx++; mtClear(); renderAssess(); } else finishAssess(); }
@@ -3147,7 +3364,8 @@ function renderAbout(){
   ];
   app.innerHTML=`<div class="screen">
     <div class="card"><div class="eyebrow">For families &amp; skeptics</div><h2>How the Cornerstone Assessment was built</h2>
-      <p class="lead">The <b>Cornerstone Assessment</b> is the foundation of Intentional Education's program — the bedrock every learning plan is built on. It is not a worksheet or a guess. <b>Every measure is grounded in the full body of evidence below</b>: peer-reviewed reading science, validated benchmark assessment, research-based math progressions, and grade-level standards — all organized through our 4D Learning Cycle. The complete, citable version lives in the companion document.</p></div>
+      <p class="lead">The <b>Cornerstone Assessment</b> is the foundation of Intentional Education's program — the bedrock every learning plan is built on. It is not a worksheet or a guess. <b>Every measure is grounded in the full body of evidence below</b>: peer-reviewed reading science, validated benchmark assessment, research-based math progressions, and grade-level standards — all organized through our 4D Learning Cycle.</p>
+      <div class="report-actions" style="margin-top:6px"><button class="btn" onclick="printFamilyEvidence()">Family Handout — Print / Save as PDF</button><span class="footnote">A clean, branded one-pager to send to families who have questions.</span></div></div>
     <div class="card"><div class="eyebrow">Grounded In</div><h2>The evidence behind every measure</h2>
       <p class="lead">The Cornerstone Assessment stands on decades of converging research. Here is the full foundation it is grounded in:</p>
       <ul class="evlist">${evidence.map(e=>`<li><b>${e[0]}</b> — ${e[1]}.</li>`).join("")}</ul></div>
@@ -3160,8 +3378,61 @@ function renderAbout(){
       <p class="lead">The Cornerstone math measures follow the <b>Common Core State Standards</b> and research-based <b>learning trajectories</b> — counting &amp; cardinality, operations, base-ten teen numbers, measurement &amp; data, and geometry — assessed concretely with manipulatives (the concrete–representational–abstract model).</p></div>
     <div class="card"><h2>Rubric, quarters &amp; tiers</h2>
       <p class="lead">Benchmarks rise each quarter toward grade-level mastery. The Cornerstone Assessment summarizes where each scholar stands as <b>On Track</b>, <b>Some Support</b>, or <b>Focused Support</b>, and the 3 / 6 / 9-month plan turns that picture into action with multisensory, Orton-Gillingham–informed strategies.</p>
-      <div class="callout" style="margin-top:12px">Open <b>“How This Diagnostic Was Built.docx”</b> for the full, citable explanation to share with families.</div></div>
+      <div class="callout" style="margin-top:12px">Use <b>“Family Handout — Print / Save as PDF”</b> at the top of this page for a branded one-pager to send to families. The companion <b>“How This Diagnostic Was Built.docx”</b> holds the full, citable explanation.</div></div>
   </div>`;
+}
+/* Branded, family-facing one-page handout — opens print-ready (Save as PDF from the dialog) */
+function buildFamilyEvidenceHTML(){
+  const cites=["Scarborough's Reading Rope (2001)","The Simple View of Reading (Gough &amp; Tunmer, 1986)","The National Reading Panel (2000)","DIBELS 8th Edition (University of Oregon, 2020)","Hasbrouck &amp; Tindal Oral Reading Fluency Norms (2017)","Ehri's Phases of Word Reading (2005)","Orton-Gillingham structured literacy","Moats, Speech to Print (2020)","Common Core &amp; New Jersey Student Learning Standards","Learning Trajectories (Clements &amp; Sarama, 2009)","Adding It Up (National Research Council, 2001)"];
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cornerstone Assessment — A Note for Families</title><style>
+  @page{margin:0.7in}
+  :root{--ink:#0d0d0d;--gold:#a07c50;--pf:'Playfair Display','Didot','Georgia',serif;--sans:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  *{box-sizing:border-box} body{font-family:var(--sans);color:#26211b;line-height:1.55;margin:0;padding:34px 40px;max-width:850px}
+  .lock{display:flex;align-items:center;gap:14px;border-bottom:3px solid var(--gold);padding-bottom:16px}
+  .lock svg{width:64px;height:64px;flex:none}
+  .wm{font-family:var(--pf);font-weight:600;font-size:26px;line-height:.9;letter-spacing:-.4px;color:var(--ink)}
+  .tag{font-family:var(--pf);font-style:italic;color:var(--gold);font-size:13px;margin-top:3px}
+  h1{font-family:var(--pf);font-size:27px;color:var(--ink);margin:26px 0 4px;font-weight:600}
+  .sub{color:#7a6f5f;font-size:13.5px;text-transform:uppercase;letter-spacing:.14em;font-weight:700}
+  h2{font-family:var(--pf);font-size:18px;color:var(--gold);margin:22px 0 6px;font-weight:600}
+  p{font-size:14px;margin:8px 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;margin-top:6px}
+  .q{border-left:3px solid var(--gold);padding:4px 0 4px 12px}
+  .q b{font-family:var(--pf);font-size:14.5px} .q span{font-size:12.5px;color:#6b6156}
+  ul{margin:6px 0 0;padding-left:18px} li{font-size:12.5px;margin-bottom:3px;color:#4a4238}
+  .foot{margin-top:26px;border-top:1px solid #e3ddd2;padding-top:12px;font-size:11.5px;color:#8a7f6f;text-align:center}
+  </style></head><body>
+  <div class="lock"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#ffffff" stroke="#111" stroke-width="3"/><text x="50" y="65" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="46" fill="#111">ie</text></svg>
+    <div><div class="wm">Intentional<br>Education</div><div class="tag">${BRAND.tagline}</div></div></div>
+
+  <div class="sub" style="margin-top:24px">A Note for Families</div>
+  <h1>Understanding Your Scholar's Cornerstone Assessment</h1>
+  <p>We believe every scholar deserves instruction built on evidence, not guesswork. The <b>Cornerstone Assessment</b> is our careful, one-on-one look at where your scholar stands in <b>reading</b> and <b>math</b>, so that every minute of teaching is matched to exactly what they need next. This page explains, in plain language, what we do and why it can be trusted.</p>
+
+  <h2>What we look at</h2>
+  <p>Reading is measured the way the science of reading recommends — from the sounds in words, to decoding, to fluent reading, vocabulary, and comprehension. Math is measured along the research-based path children naturally follow — from counting and number sense, to operations, place value, fractions, and geometry. Young children work with real objects they can touch, and nothing is ever marked "wrong" in front of your scholar.</p>
+
+  <h2>How we share results</h2>
+  <p>We describe your scholar with warm, plain-language bands — <b>Emerging, Developing, On Track,</b> and <b>Soaring</b> — always compared to what is expected <b>at this point in the year</b>. For reading speed, we compare your scholar to the national grade-level average. Then our <b>Intentional Learning Plan</b> turns that picture into a clear, personalized path forward.</p>
+
+  <div class="grid">
+    <div class="q"><b>Grounded in evidence</b><br><span>Every measure rests on decades of reading and math research.</span></div>
+    <div class="q"><b>Standards-aligned</b><br><span>Matched to the Common Core and New Jersey Student Learning Standards.</span></div>
+    <div class="q"><b>Kind to your scholar</b><br><span>A gentle, encouraging experience — never a test they can fail.</span></div>
+    <div class="q"><b>A true partnership</b><br><span>You receive a clear report, a plan, and a team walking alongside you.</span></div>
+  </div>
+
+  <h2>The research it stands on</h2>
+  <ul>${cites.map(c=>`<li>${c}</li>`).join("")}</ul>
+
+  <div class="foot">Intentional Education &middot; ${BRAND.tagline} &middot; Questions? We are always glad to talk through your scholar's results.</div>
+  </body></html>`;
+}
+function printFamilyEvidence(){
+  const w2=window.open("","_blank");
+  if(!w2){ alert("Please allow pop-ups for this page, then click again to open the family handout."); return; }
+  w2.document.write(buildFamilyEvidenceHTML()); w2.document.close();
+  setTimeout(()=>{ try{ w2.focus(); w2.print(); }catch(e){} }, 350);
 }
 /* ===================================================================
    11. BOOT
