@@ -566,6 +566,31 @@ tr:hover td{background:var(--mist)}
 .masterygrp{margin-top:10px}
 .mg-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-family:var(--sans);font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--teal);border-bottom:1px solid var(--line,#e7e1d6);padding-bottom:4px;margin-bottom:6px}
 .mg-count{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:#a07c50}
+/* Staff gate + footer */
+body.gated .topnav{display:none}
+.gatecard{max-width:520px;margin:40px auto}
+.appfoot{max-width:1120px;margin:24px auto 40px;padding:16px 24px 0;border-top:1px solid var(--line,#e7e1d6)}
+.footinner{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-family:var(--sans);font-size:12.5px;color:var(--slate)}
+.footbrand{font-weight:700;letter-spacing:.02em}
+.footlinks a{color:var(--teal);cursor:pointer;text-decoration:none}
+.footlinks a:hover{text-decoration:underline}
+.footdot{color:#c9bfa8;margin:0 4px}
+@media print{.appfoot{display:none!important}}
+/* Smart lesson plan */
+.lp-block{border:1px solid var(--line,#e7e1d6);border-left:4px solid var(--gold-brand,#a07c50);border-radius:var(--r-sm);padding:16px 18px;margin-top:14px;background:#fff}
+.lp-wk{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.lp-wknum{font-family:var(--pf,'Playfair Display',serif);font-weight:700;font-size:18px}
+.lp-dates{font-size:12px;color:#a49a86}
+.lp-skill{font-weight:700;color:var(--ink,#0d0d0d);margin:4px 0 2px;font-size:15px}
+.lp-obj{font-size:13px;color:var(--slate);background:var(--card-soft,#fbf9f5);border-radius:8px;padding:8px 11px;margin:8px 0}
+.lp-words{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}
+.lp-word{font-family:var(--read,'Andika','Comic Sans MS',sans-serif);font-weight:700;font-size:15px;background:#efe7d8;color:#5a4a30;border-radius:8px;padding:5px 12px}
+.lp-cycle{font-size:12.5px;color:var(--slate);line-height:1.55;margin:4px 0}
+.lp-assess{font-size:12.5px;color:#2b7a86;background:#e2f0f2;border-radius:8px;padding:7px 11px;margin-top:8px}
+.lp-cal{border:1px solid var(--line,#e7e1d6);border-radius:var(--r-sm);overflow:hidden;margin-top:12px}
+.lp-cal-row{display:flex;justify-content:space-between;gap:12px;padding:9px 14px;border-bottom:1px solid var(--line,#efe9dd);font-size:13px}
+.lp-cal-row:last-child{border-bottom:none}
+.lp-cal-when{color:#a07c50;font-weight:700;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -582,6 +607,7 @@ tr:hover td{background:var(--mist)}
   </nav>
 </div>
 <div class="wrap" id="app"></div>
+<footer class="appfoot" id="appfoot"></footer>
 <script>
 /* ===================================================================
    0. FRAMEWORK CONSTANTS — The Intentional Education 4D Learning Cycle
@@ -1445,10 +1471,47 @@ function tierName(t){ return t==='core'?'On Track':t==='strategic'?'Some Support
 document.querySelectorAll('.topnav button').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.nav)));
 function setNav(n){ document.querySelectorAll('.topnav button').forEach(b=>b.classList.toggle('active',b.dataset.nav===n)); }
 function nav(screen){
+  if(!staffOk()){ renderStaffGate(); return; }
   if(S.timer && screen!=="assess"){ clearInterval(S.timer); S.timer=null; }
   S.screen=screen; setNav(["home","scholars","scales","about"].includes(screen)?screen:((screen==="dashboard"||screen==="profile")?"scholars":"home"));
-  ({home:renderHome,setup:renderSetup,intake:renderIntake,assess:renderAssess,results:renderResults,scholars:renderScholars,profile:renderScholarProfile,probe:renderProbe,weekedit:renderWeekEditor,dashboard:renderDashboard,scales:renderScales,about:renderAbout}[screen]||renderHome)();
+  ({home:renderHome,setup:renderSetup,intake:renderIntake,assess:renderAssess,results:renderResults,scholars:renderScholars,profile:renderScholarProfile,probe:renderProbe,weekedit:renderWeekEditor,lessonplan:renderLessonPlan,dashboard:renderDashboard,scales:renderScales,about:renderAbout}[screen]||renderHome)();
+  renderFooter();
   window.scrollTo(0,0);
+}
+/* ===================================================================
+   STAFF ACCESS — light client-side passcode gate (a soft gate to keep the
+   public out of a hosted copy; real per-user logins come with the Phase 2
+   backend). Change STAFF_PASSCODE below to your own code.
+   =================================================================== */
+const STAFF_PASSCODE = "IEstaff2026";
+const STAFF_KEY = "foundations_staff_ok_v1";
+function staffOk(){ try{ return localStorage.getItem(STAFF_KEY)==="1"; }catch(e){ return false; } }
+function staffSignIn(){ const el=document.getElementById('staffPass'); const v=(el&&el.value||'').trim();
+  if(v===STAFF_PASSCODE){ try{ localStorage.setItem(STAFF_KEY,"1"); }catch(e){} document.body.classList.remove('gated'); nav('home'); }
+  else { const err=document.getElementById('staffErr'); if(err) err.style.display='block'; if(el){ el.value=''; el.focus(); } } }
+function staffSignOut(){ try{ localStorage.removeItem(STAFF_KEY); }catch(e){} nav('home'); }
+function renderStaffGate(){
+  document.body.classList.add('gated');
+  app.innerHTML=`<div class="screen"><div class="card gatecard">
+    <div class="brandcenter">${ieLockup(true,true)}</div>
+    <h2 style="text-align:center;margin-top:18px">Staff Sign In</h2>
+    <p class="lead" style="text-align:center">The Cornerstone Assessment is a staff tool. Please enter the staff passcode to continue.</p>
+    <div style="max-width:340px;margin:10px auto 0">
+      <input id="staffPass" type="password" placeholder="Staff passcode" onkeydown="if(event.key==='Enter')staffSignIn()" style="text-align:center">
+      <div id="staffErr" style="display:none;color:var(--rose-d,#c1543b);text-align:center;font-size:13px;margin-top:8px">That passcode didn't match. Please try again.</div>
+      <button class="btn" style="width:100%;margin-top:12px" onclick="staffSignIn()">Sign In</button>
+    </div>
+    <p class="footnote" style="text-align:center;margin-top:16px">Staff access only. Individual staff logins are coming with our secure platform.</p>
+  </div></div>`;
+  document.getElementById('appfoot').innerHTML='';
+  const p=document.getElementById('staffPass'); if(p) p.focus();
+}
+function renderFooter(){
+  const f=document.getElementById('appfoot'); if(!f) return;
+  f.innerHTML=`<div class="footinner">
+    <span class="footbrand">Intentional Education &middot; Cornerstone Assessment</span>
+    <span class="footlinks"><a onclick="nav('scholars')">Evaluations</a> <span class="footdot">&middot;</span> <a onclick="nav('about')">Evidence</a> <span class="footdot">&middot;</span> <a onclick="staffSignOut()">Staff sign out</a></span>
+  </div>`;
 }
 
 /* ===================================================================
@@ -1510,6 +1573,7 @@ function renderScholars(){
         <button class="btn" onclick="startNew()">Start New Evaluation</button>
         <button class="btn ghost" onclick="createScholarProfile()">Create Scholar Profile</button>
         <button class="btn ghost" onclick="exportAllCSV()">Export All to CSV</button>
+        <button class="btn ghost" onclick="exportSkillChecksCSV()">Export Skill Checks (CSV)</button>
         <button class="btn ghost" onclick="nav('dashboard')">View All Sessions (table)</button>
       </div>
       ${names.length?`<input id="schfilter" placeholder="Search scholars by name…" style="margin-top:14px" oninput="filterScholars(this.value)">`:''}
@@ -1954,6 +2018,7 @@ function renderProbe(){
     <div class="eyebrow">Skill Check &middot; ${esc((SKILL_GROUPS.find(g=>g.key===sk.group)||{}).label||'')}</div>
     <h2>${esc(sk.title)}</h2>
     <p class="footnote" style="margin-top:2px">${esc(sk.standard)} &middot; typical band ${esc(sk.band)} &middot; ${esc(p.scholar)}</p>
+    ${sk.read?`<div style="margin:8px 0"><button class="dualbtn" onclick="openScholarScreenProbe()" title="Show the scholar a big, colorful view of the letters/words on a second screen">Open Scholar Screen</button></div>`:''}
     <div class="callout" style="margin:12px 0">${sk.script}</div>
     <div class="probelist">
       ${sk.items.map((it,i)=>`<div class="probeitem ${p.marks[i]==='skip'?'skipped':''}">
@@ -1971,6 +2036,22 @@ function renderProbe(){
       <button class="btn" onclick="finishProbe()" ${done<sk.items.length?'disabled title="Mark every item first"':''}>Finish Skill Check</button>
     </div>
   </div>`;
+}
+function openScholarScreenProbe(){
+  scholarWin=window.open("","FoundationsScholar","width=900,height=680");
+  if(!scholarWin){ alert("Please allow pop-ups so the scholar screen can open in its own window."); return; }
+  scholarWin.document.open(); scholarWin.document.write(scholarDoc()); scholarWin.document.close();
+  broadcastProbe(); renderProbe();
+}
+function broadcastProbe(){
+  const p=S.probe, sk=p&&skillById(p.skillId); if(!sk) return;
+  let stim, sub;
+  if(sk.read){ const letters=sk.items.every(it=>String(it.label).length<=2);
+    stim=`<div class="tiles">${sk.items.map(it=>`<div class="tile ${letters?'':'word'}">${esc(it.label)}</div>`).join("")}</div>`; sub=""; }
+  else { stim='<div class="big">★</div>'; sub="Listen and do your best!"; }
+  const payload={heading:"Your turn!", sub:sub, stim:stim, manip:false, pointer:{on:false,idx:0}, t:Date.now()};
+  save(LIVE,payload);
+  if(scholarWin && !scholarWin.closed){ try{ scholarWin.postMessage(payload,'*'); }catch(e){} }
 }
 function probeBand(pct){ return pct>=80?{band:'soaring',label:'Mastered',tier:'core'}:pct>=60?{band:'ontrack',label:'Developing',tier:'strategic'}:pct>=40?{band:'developing',label:'Emerging',tier:'strategic'}:{band:'emerging',label:'Not Yet',tier:'intensive'}; }
 function finishProbe(){
@@ -2003,7 +2084,7 @@ function skillChecksHTML(name){
     ${attempted.length?`<div style="margin-top:16px"><div class="stdom">Skill mastery map</div>
       <div class="footnote" style="margin:2px 0 4px">Grouped by area, colored by latest result: <b style="color:${BANDS.soaring.color}">Mastered</b> · <b style="color:${BANDS.ontrack.color}">Developing</b> · <b style="color:${BANDS.developing.color}">Emerging</b> · <b style="color:${BANDS.emerging.color}">Not Yet</b>.</div>
       ${masteryBoard}</div>`:''}
-    ${checks.length?`<div style="margin-top:14px"><div class="stdom">History</div>
+    ${checks.length?`<div style="margin-top:14px"><div class="stdom" style="display:flex;justify-content:space-between;align-items:center">History <button class="btn ghost sm" style="text-transform:none;letter-spacing:0" onclick="exportSkillChecksCSV('${enc}')">Export CSV</button></div>
       <table><thead><tr><th>Date</th><th>Skill</th><th>Result</th><th>Score</th></tr></thead><tbody>
       ${checks.map(c=>`<tr><td>${esc(c.date)}</td><td>${esc(c.title)}</td><td style="color:${BANDS[c.band].color};font-weight:700">${esc(c.label)}</td><td>${c.correct}/${c.total} (${c.pct}%)</td></tr>`).join('')}
       </tbody></table></div>`:'<div class="callout" style="margin-top:12px">No skill checks yet. Pick a skill above and run a quick check.</div>'}
@@ -2094,6 +2175,12 @@ function renderScholarProfile(){
     </div>
 
     ${curriculumHTML(name)}
+
+    <div class="card">
+      <div class="eyebrow">Smart Lesson Plan</div><h2>Data-driven path to mastery</h2>
+      <p class="lead">Generate a strategic, week-by-week lesson plan for ${esc(first)} — the tool selects the priority struggle areas from the diagnostics and skill checks, pulls the exact words to practice, sequences them developmentally, and schedules when to re-assess each sub-domain.${prof.lessonPlan?` <b>Current plan: ${prof.lessonPlan.count} weeks, generated ${esc(prof.lessonPlan.generated)}.</b>`:''}</p>
+      <div class="report-actions"><button class="btn" onclick="nav('lessonplan')">${prof.lessonPlan?'View / Update Lesson Plan':'Build Smart Lesson Plan'}</button>${prof.lessonPlan?`<button class="btn ghost" onclick="printLessonPlan('${enc}')">Print / Save as PDF</button>`:''}</div>
+    </div>
 
     <div class="card" id="roundup">
       <div class="eyebrow">Roundup</div><h2>${esc(first)}'s Snapshot</h2>
@@ -2272,6 +2359,111 @@ function profileRoundupHTML(name,all,latestLit,latestMath){
 }
 function lastFirst(all,dom){ const d=all.filter(s=>s.domainKey===dom); if(d.length<2) return null; return {first:d[0].overall,last:d[d.length-1].overall}; }
 function startSkillCheckFor(enc,domain){ const name=decodeURIComponent(enc); const last=loadSessions().filter(s=>s.student===name).sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id))[0]; const prof=getProfile(name)||{}; startSession(domain); const ss=S.session; if(last){ ss.student=last.student; ss.birthday=last.birthday||prof.birthday||''; ss.grade=last.grade; ss.iep=!!(last.iep||prof.iep); ss.plan504=!!(last.plan504||prof.plan504); ss.accommodations=(last.accommodations||[]).slice(); if(ss.birthday) ss.autoPlaced=true; } renderSetup(); }
+/* ===================================================================
+   4d. SMART LESSON PLAN — data-driven, scope-and-sequenced plan that picks
+   strategic target skills + words from the scholar's struggle areas, builds a
+   week-by-week timeline to mastery, and schedules sub-domain re-assessments.
+   =================================================================== */
+function lessonTargetFromSkill(sk,src){ return {skillId:sk.id,title:sk.title,domain:sk.domain,standard:sk.standard,group:sk.group,words:(sk.items||[]).map(it=>String(it.label)).slice(0,8),interventions:(sk.interventions||[]).slice(0,3),source:src}; }
+function lessonPlanTargets(name){
+  const prof=getProfile(name)||{}, seen=new Set(), targets=[], orderBand={emerging:0,developing:1};
+  const latest={}; (prof.skillChecks||[]).forEach(c=>{latest[c.skillId]=c;});
+  Object.values(latest).filter(c=>c.band==='emerging'||c.band==='developing')
+    .sort((a,b)=>orderBand[a.band]-orderBand[b.band])
+    .forEach(c=>{ const sk=skillById(c.skillId); if(sk&&!seen.has(sk.id)){ seen.add(sk.id); targets.push(lessonTargetFromSkill(sk,'Skill check: '+c.label+' ('+c.pct+'%)')); }});
+  const all=loadSessions().filter(s=>s.student===name), byDom={}; all.forEach(s=>byDom[s.domainKey]=s);
+  ['literacy','math'].forEach(d=>{ const s=byDom[d]; if(s&&s.result&&s.result.focus) s.result.focus.forEach(f=>{ const key='f:'+(f.title||'').toLowerCase(); if(!seen.has(key)){ seen.add(key); targets.push({title:f.title,domain:d,standard:f.standard||'',group:f.strand||'',words:[],interventions:(f.interventions||[]).slice(0,3),source:'Diagnostic focus area'}); }});});
+  const idx=id=>{ const i=SKILL_PROBES.findIndex(p=>p.id===id); return i<0?999:i; };
+  targets.sort((a,b)=>(a.skillId?idx(a.skillId):600+(a.domain==='math'?100:0))-(b.skillId?idx(b.skillId):600+(b.domain==='math'?100:0)));
+  return targets;
+}
+function lessonObjective(t,first){ const sk=t.skillId?skillById(t.skillId):null; const n=(t.words&&t.words.length)||(sk?sk.items.length:8); const unit=t.domain==='math'?'problems':(t.words&&t.words.length?'items':'tasks'); return `Given ${n} ${t.title.toLowerCase()} ${unit}, ${first} responds correctly to at least 80% independently.`; }
+function lessonCycle(t){ const iv=t.interventions||[]; return `I do — model explicitly: ${iv[0]||'demonstrate the skill step by step'}. We do — guided practice: ${iv[1]||'practice together with support and feedback'}. You do — independent: ${iv[2]||'apply the skill, then check and celebrate'}.`; }
+function fmtD(d){ return d.toISOString().slice(0,10); }
+function generateLessonPlan(enc){
+  const name=decodeURIComponent(enc), first=name.split(' ')[0]; S.profileName=name;
+  const targets=lessonPlanTargets(name), start=new Date();
+  const maxWeeks=Math.min(Math.max(targets.length,1),10);
+  const list=targets.length?targets.slice(0,maxWeeks):[{title:'Reading & Number Enrichment',domain:'literacy',standard:'',words:[],interventions:['Read together 15 minutes daily and discuss','Play a quick number-facts game','Explore new vocabulary words'],source:'Enrichment (no struggle areas flagged)'}];
+  const weeks=list.map((t,i)=>{ const ws=new Date(start.getTime()+i*7*864e5), we=new Date(ws.getTime()+6*864e5);
+    return { n:i+1, start:fmtD(ws), end:fmtD(we), title:t.title, domain:t.domain, standard:t.standard, source:t.source,
+      objective:lessonObjective(t,first), words:t.words||[], cycle:lessonCycle(t), home:(t.interventions||[]).slice(0,3),
+      skillId:t.skillId||'' }; });
+  const cal=weeks.map(w=>({when:`Wk ${w.n} · ${w.end}`, what:`${w.title} — sub-domain skill check (target: Mastered, 80%+)`}));
+  const midi=Math.max(1,Math.ceil(list.length/2));
+  cal.splice(midi,0,{when:`Midpoint · ${fmtD(new Date(start.getTime()+midi*7*864e5))}`, what:`Progress check on the two most difficult skills so far; adjust pacing`});
+  cal.push({when:`Block end · ${fmtD(new Date(start.getTime()+list.length*7*864e5))}`, what:`Re-run the full grade-level battery to confirm growth and re-baseline the plan`});
+  const plan={generated:fmtD(start), weeks, cal, count:list.length, note:'2–3 short (10–15 min) sessions per week per skill; advance a skill only when the 80% objective is met.'};
+  saveProfile(name,{lessonPlan:plan}); nav('lessonplan');
+}
+function renderLessonPlan(){
+  const name=S.profileName; if(!name){ nav('scholars'); return; }
+  const enc=encodeURIComponent(name), first=name.split(' ')[0], prof=getProfile(name)||{}, plan=prof.lessonPlan;
+  if(!plan){ app.innerHTML=`<div class="screen card"><div class="eyebrow">Smart Lesson Plan</div><h2>Build ${esc(first)}'s lesson plan</h2>
+    <p class="lead">This generates a data-driven plan from ${esc(first)}'s diagnostics and skill checks: it selects the priority struggle areas, pulls the strategic words to practice, sequences them developmentally, builds a week-by-week timeline to mastery, and schedules when each sub-domain should be re-assessed.</p>
+    <div class="report-actions"><button class="btn" onclick="generateLessonPlan('${enc}')">Generate Smart Lesson Plan</button><button class="btn ghost" onclick="openProfile('${enc}')">Back to profile</button></div></div>`; renderFooter(); return; }
+  app.innerHTML=`<div class="screen" id="lessonScreen">
+    <div class="card"><div class="eyebrow">Smart Lesson Plan</div><h2>${esc(first)}'s Path to Mastery</h2>
+      <p class="lead">A ${plan.count}-week, data-driven plan built from ${esc(first)}'s struggle areas — sequenced developmentally, with strategic practice words, a teaching cycle, home practice, and a built-in re-assessment schedule. Generated ${esc(plan.generated)}.</p>
+      <p class="footnote">${esc(plan.note)}</p>
+      <div class="report-actions"><button class="btn" onclick="printLessonPlan('${enc}')">Print / Save as PDF</button><button class="btn ghost" onclick="generateLessonPlan('${enc}')">Regenerate from latest data</button><button class="btn ghost" onclick="openProfile('${enc}')">Back to profile</button></div>
+    </div>
+    <div class="card"><div class="eyebrow">Timeline</div><h2>Week by week</h2>
+      ${plan.weeks.map(w=>`<div class="lp-block">
+        <div class="lp-wk"><span class="lp-wknum">Week ${w.n} · ${w.domain==='math'?'Math':'Literacy'}</span><span class="lp-dates">${esc(w.start)} → ${esc(w.end)}</span></div>
+        <div class="lp-skill">${esc(w.title)}${w.standard?` <span class="footnote" style="font-weight:400">· ${esc(w.standard)}</span>`:''}</div>
+        <div class="footnote" style="margin:0">Why this week: ${esc(w.source)}</div>
+        <div class="lp-obj"><b>Objective:</b> ${esc(w.objective)}</div>
+        ${w.words.length?`<div class="stdom">Strategic words to practice</div><div class="lp-words">${w.words.map(x=>`<span class="lp-word">${esc(x)}</span>`).join('')}</div>`:''}
+        <div class="stdom">Teaching cycle</div><div class="lp-cycle">${esc(w.cycle)}</div>
+        ${w.home.length?`<div class="stdom">At-home practice</div><ul class="curacts">${w.home.map(h=>`<li>${esc(h)}</li>`).join('')}</ul>`:''}
+        <div class="lp-assess"><b>Assess:</b> End of Week ${w.n} — run the ${esc(w.title)} skill check. Advance only at 80%+ (Mastered).</div>
+      </div>`).join('')}
+    </div>
+    <div class="card"><div class="eyebrow">Assessment Schedule</div><h2>When to check sub-domains</h2>
+      <p class="lead">Progress is confirmed with data, not guesswork. Run these checks on schedule and let results steer the pacing.</p>
+      <div class="lp-cal">${plan.cal.map(c=>`<div class="lp-cal-row"><span>${esc(c.what)}</span><span class="lp-cal-when">${esc(c.when)}</span></div>`).join('')}</div>
+    </div>
+  </div>`;
+  renderFooter();
+}
+function buildLessonPlanHTML(name){
+  const prof=getProfile(name)||{}, plan=prof.lessonPlan, first=name.split(' ')[0]; if(!plan) return '';
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(name)} — Cornerstone Lesson Plan</title><style>
+  @page{margin:0.6in} :root{--ink:#0d0d0d;--gold:#a07c50;--pf:'Playfair Display','Didot','Georgia',serif;--sans:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;--read:'Andika','Comic Sans MS',sans-serif}
+  *{box-sizing:border-box} body{font-family:var(--sans);color:#26211b;margin:0;padding:30px 36px;line-height:1.5;max-width:900px}
+  .lock{display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--gold);padding-bottom:14px}
+  .lock svg{width:56px;height:56px} .wm{font-family:var(--pf);font-weight:600;font-size:23px;line-height:.9;color:var(--ink)} .tag{font-family:var(--pf);font-style:italic;color:var(--gold);font-size:12px;margin-top:3px}
+  h1{font-family:var(--pf);font-size:24px;margin:20px 0 2px} .sub{color:#7a6f5f;font-size:12px;text-transform:uppercase;letter-spacing:.14em;font-weight:700}
+  .blk{border:1px solid #e3ddd2;border-left:4px solid var(--gold);border-radius:8px;padding:12px 15px;margin:12px 0;page-break-inside:avoid}
+  .wk{display:flex;justify-content:space-between;font-family:var(--pf);font-weight:700;font-size:15px} .dt{font-family:var(--sans);font-weight:400;color:#9a8b78;font-size:12px}
+  .sk{font-weight:700;margin:3px 0} .why{font-size:11.5px;color:#8a7f6f} .obj{background:#fbf9f5;border-radius:6px;padding:7px 10px;font-size:12.5px;margin:7px 0}
+  .words{margin:6px 0} .w{display:inline-block;font-family:var(--read);font-weight:700;background:#efe7d8;color:#5a4a30;border-radius:6px;padding:3px 10px;margin:3px 5px 0 0;font-size:13px}
+  .lab{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#2b7a86;margin-top:7px} .cyc{font-size:12px;color:#4a4238}
+  ul{margin:4px 0 0;padding-left:16px} li{font-size:12px;margin-bottom:2px}
+  .as{background:#e2f0f2;border-radius:6px;padding:6px 10px;font-size:12px;color:#2b6b76;margin-top:7px}
+  .cal{border:1px solid #e3ddd2;border-radius:8px;margin-top:8px} .cr{display:flex;justify-content:space-between;gap:12px;padding:7px 12px;border-bottom:1px solid #efe9dd;font-size:12px} .cr:last-child{border:none} .cw{color:var(--gold);font-weight:700;white-space:nowrap}
+  .foot{margin-top:22px;border-top:1px solid #e3ddd2;padding-top:10px;font-size:11px;color:#8a7f6f;text-align:center}
+  </style></head><body>
+  <div class="lock"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#fff" stroke="#111" stroke-width="3"/><text x="50" y="65" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="46" fill="#111">ie</text></svg>
+    <div><div class="wm">Intentional<br>Education</div><div class="tag">${BRAND.tagline}</div></div></div>
+  <div class="sub" style="margin-top:18px">Smart Lesson Plan · ${esc(plan.count)} weeks · generated ${esc(plan.generated)}</div>
+  <h1>${esc(name)} — Path to Mastery</h1>
+  <p style="font-size:12.5px;color:#5a5148">${esc(plan.note)}</p>
+  ${plan.weeks.map(w=>`<div class="blk"><div class="wk"><span>Week ${w.n} · ${w.domain==='math'?'Math':'Literacy'}</span><span class="dt">${esc(w.start)} → ${esc(w.end)}</span></div>
+    <div class="sk">${esc(w.title)}${w.standard?` <span class="why">· ${esc(w.standard)}</span>`:''}</div>
+    <div class="why">Why this week: ${esc(w.source)}</div>
+    <div class="obj"><b>Objective:</b> ${esc(w.objective)}</div>
+    ${w.words.length?`<div class="lab">Strategic words</div><div class="words">${w.words.map(x=>`<span class="w">${esc(x)}</span>`).join('')}</div>`:''}
+    <div class="lab">Teaching cycle</div><div class="cyc">${esc(w.cycle)}</div>
+    ${w.home.length?`<div class="lab">At-home practice</div><ul>${w.home.map(h=>`<li>${esc(h)}</li>`).join('')}</ul>`:''}
+    <div class="as"><b>Assess:</b> End of Week ${w.n} — ${esc(w.title)} skill check; advance at 80%+.</div></div>`).join('')}
+  <div class="sub" style="margin-top:18px">Assessment Schedule</div>
+  <div class="cal">${plan.cal.map(c=>`<div class="cr"><span>${esc(c.what)}</span><span class="cw">${esc(c.when)}</span></div>`).join('')}</div>
+  <div class="foot">Intentional Education &middot; ${BRAND.tagline} &middot; Cornerstone Assessment</div>
+  </body></html>`;
+}
+function printLessonPlan(enc){ const name=decodeURIComponent(enc); const html=buildLessonPlanHTML(name); if(!html){ alert('Generate the lesson plan first.'); return; } const w2=window.open("","_blank"); if(!w2){ alert('Please allow pop-ups to print the lesson plan.'); return; } w2.document.write(html); w2.document.close(); setTimeout(()=>{ try{ w2.focus(); w2.print(); }catch(e){} },350); }
 function filterScholars(q){ q=(q||'').toLowerCase(); document.querySelectorAll('#schgrid .schcard').forEach(c=>{ c.style.display=c.dataset.name.indexOf(q)>=0?'':'none'; }); }
 function startNextFor(id){ const last=loadSessions().find(s=>s.id===id); startSession(last?last.domainKey:'literacy'); const ss=S.session; if(last){ ss.student=last.student; ss.birthday=last.birthday||''; ss.grade=last.grade; ss.iep=!!last.iep; ss.plan504=!!last.plan504; ss.accommodations=(last.accommodations||[]).slice(); if(last.birthday) ss.autoPlaced=true; } renderSetup(); }
 
@@ -3254,7 +3446,13 @@ function rowFor(m){ const r=m.result||{}; return [m.student,gradeLabel(m.grade),
 function download(name,content,type){ const b=new Blob([content],{type:type||'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=name; a.click(); URL.revokeObjectURL(u); }
 function exportCSV(){ const m=LAST.meta,r=LAST.result; const meta={student:m.student,grade:r.grade,domainKey:r.domainKey,phase:r.phase,date:m.date,location:m.location,evaluator:m.evaluator,durationMin:m.durationMin,overall:r.overall,tier:r.tier,iep:r.iep,plan504:r.plan504,accommodations:r.accommodations,regressionPath:r.regressionPath,discontinued:r.discontinued,strengths:r.strong.map(s=>s.title),focus:r.focus.map(s=>s.title),promptsUsed:r.promptsUsed,notes:r.notes,result:r};
   download(`${(m.student||'scholar').replace(/\W+/g,'_')}_${r.phase}_${r.domainKey}.csv`, csvRow(CSV_HEAD)+"\n"+csvRow(rowFor(meta)),'text/csv'); }
-function exportAllCSV(){ const list=loadSessions(); if(!list.length){ alert("No saved sessions yet."); return; } download(`Foundations_AllSessions_${new Date().toISOString().slice(0,10)}.csv`,[csvRow(CSV_HEAD),...list.map(m=>csvRow(rowFor(m)))].join("\n"),'text/csv'); }
+function exportAllCSV(){ const list=loadSessions(); if(!list.length){ alert("No saved sessions yet."); return; } download(`Cornerstone_AllSessions_${new Date().toISOString().slice(0,10)}.csv`,[csvRow(CSV_HEAD),...list.map(m=>csvRow(rowFor(m)))].join("\n"),'text/csv'); }
+const SKILLCSV_HEAD=["Scholar","Skill","Area","Standard","Date","Result","Correct","Total","Percent","Evaluator","Notes"];
+function exportSkillChecksCSV(enc){
+  const only=enc?decodeURIComponent(enc):null, profs=loadProfiles(), rows=[SKILLCSV_HEAD]; let any=false;
+  Object.values(profs).forEach(p=>{ if(only && p.name!==only) return; (p.skillChecks||[]).forEach(c=>{ any=true; const sk=skillById(c.skillId); const g=sk?((SKILL_GROUPS.find(x=>x.key===sk.group)||{}).label||""):""; rows.push([p.name||"",c.title,g,c.standard||"",c.date,c.label,c.correct,c.total,c.pct+"%",c.evaluator||"",(c.notes||"").replace(/\n/g," ")]); }); });
+  if(!any){ alert("No skill checks recorded yet."); return; }
+  download(`Cornerstone_SkillChecks_${only?only.replace(/\W+/g,'_')+'_':''}${new Date().toISOString().slice(0,10)}.csv`, rows.map(csvRow).join("\n"),'text/csv'); }
 function emailFamily(){ const m=LAST.meta,r=LAST.result,f=familyData(m,r);
   const lines=[
     `To the Family of ${f.name},`,"",
