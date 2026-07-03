@@ -591,6 +591,35 @@ body.gated .topnav{display:none}
 .lp-cal-row{display:flex;justify-content:space-between;gap:12px;padding:9px 14px;border-bottom:1px solid var(--line,#efe9dd);font-size:13px}
 .lp-cal-row:last-child{border-bottom:none}
 .lp-cal-when{color:#a07c50;font-weight:700;white-space:nowrap}
+/* ---- Redesigned Scholar Profile (clean & aesthetic) ---- */
+.profilev2{max-width:920px;margin:0 auto}
+.profilev2 .psec{padding:26px 30px}
+.profilev2 .psec h2{margin:2px 0 14px}
+.phero{display:flex;align-items:center;gap:20px;padding:6px 4px 0}
+.phero-badge svg{filter:drop-shadow(0 6px 14px rgba(160,124,80,.28))}
+.phero-name{font-family:var(--pf,'Playfair Display',serif);font-weight:600;font-size:38px;line-height:1.05;letter-spacing:-.5px;margin:2px 0 6px;color:var(--ink,#0d0d0d)}
+.phero-meta{font-family:var(--sans);font-size:13.5px;color:var(--slate);letter-spacing:.02em}
+.phero-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.ptag{font-family:var(--sans);font-size:11.5px;font-weight:700;letter-spacing:.04em;padding:4px 12px;border-radius:999px;background:var(--gold-brand,#a07c50);color:#fff;display:inline-flex;align-items:center;gap:6px}
+.ptag.soft{background:#f2ece1;color:#6b5a3f;font-weight:600}
+.ptag .csw{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+.pactions{display:flex;flex-wrap:wrap;gap:9px;margin:18px 4px 20px}
+.glance-growth{margin-top:16px;font-size:13.5px;color:var(--slate);border-top:1px solid var(--line,#efe9dd);padding-top:14px}
+.glance-growth .gg-lbl{font-family:var(--sans);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-brand,#a07c50);margin-right:8px}
+.profilev2 .standgrid{gap:16px}
+.profilev2 .stcard{background:linear-gradient(180deg,#fffdf9,#fbf8f2);border:1px solid #ece5d8;border-radius:16px;padding:18px 20px}
+.profilev2 .stpct{font-size:34px}
+.foldgroup{display:flex;flex-direction:column;gap:12px;margin:18px 0}
+.foldcard{background:var(--card,#fff);border:1px solid var(--line,#e7e1d6);border-radius:var(--r,16px);box-shadow:0 1px 2px rgba(0,0,0,.03);overflow:hidden}
+.foldsum{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 24px;user-select:none}
+.foldsum::-webkit-details-marker{display:none}
+.fs-l{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.fs-t{font-family:var(--pf,'Playfair Display',serif);font-weight:600;font-size:18px;color:var(--ink,#0d0d0d)}
+.fs-m{font-family:var(--sans);font-size:12px;color:var(--slate)}
+.fs-chev{font-size:18px;color:#b7ad99;transition:transform .2s}
+.foldcard[open] .fs-chev{transform:rotate(180deg)}
+.foldbody{padding:0 24px 22px}
+@media(max-width:560px){.profilev2 .psec{padding:20px 18px}.phero-name{font-size:30px}.foldsum{padding:15px 18px}.foldbody{padding:0 18px 18px}}
 </style>
 </head>
 <body>
@@ -2121,34 +2150,42 @@ function renderScholarProfile(){
       <button class="btn ghost sm" style="margin-top:10px" onclick="openSaved('${s.id}')">Open full profile &rarr;</button>
     </div>`;
   };
-  app.innerHTML=`<div class="screen" id="profileScreen">
-    <div class="card profilehead">
-      <div class="phrow">${monogramSVG(52)}
-        <div style="flex:1">
-          <div class="eyebrow">Scholar Profile</div>
-          <h2 style="margin:2px 0 4px">${esc(name)}</h2>
-          <div class="schmeta">${esc(gradeLabel(last.grade))}${ageFrom(prof.birthday||last.birthday)!=null?` · age ${ageFrom(prof.birthday||last.birthday)}`:''} · ${all.length} evaluation${all.length>1?'s':''} on file${(prof.iep||last.iep)?' · IEP':''}${(prof.plan504||last.plan504)?' · 504':''}</div>
-          ${intakeBits.length?`<div class="intakebits">${swatch?`<span class="csw" style="background:${swatch}"></span>`:''}${intakeBits.join(' &nbsp;·&nbsp; ')}</div>`:''}
+  const age=ageFrom(prof.birthday||last.birthday);
+  const lg=lastFirst(all,'literacy'), mg=lastFirst(all,'math');
+  const gparts=[]; if(lg) gparts.push(`Literacy ${lg.first}% &rarr; ${lg.last}%`); if(mg) gparts.push(`Math ${mg.first}% &rarr; ${mg.last}%`);
+  const growthLine=gparts.length?gparts.join(' &nbsp;·&nbsp; '):'';
+  app.innerHTML=`<div class="screen profilev2" id="profileScreen">
+    <div class="phero">
+      <div class="phero-badge">${monogramSVG(58)}</div>
+      <div class="phero-main">
+        <div class="eyebrow">Scholar Profile</div>
+        <h1 class="phero-name">${esc(name)}</h1>
+        <div class="phero-meta">${esc(gradeLabel(last.grade))}${age!=null?` &middot; age ${age}`:''} &middot; ${all.length} evaluation${all.length>1?'s':''}</div>
+        <div class="phero-tags">
+          ${(prof.iep||last.iep)?'<span class="ptag">IEP</span>':''}
+          ${(prof.plan504||last.plan504)?'<span class="ptag">504</span>':''}
+          ${swatch?`<span class="ptag soft"><span class="csw" style="background:${swatch}"></span>${esc(prof.color)}</span>`:''}
+          ${prof.dream?`<span class="ptag soft">Dreams of being ${esc(prof.dream)}</span>`:''}
+          ${prof.fun?`<span class="ptag soft">Loves ${esc(prof.fun)}</span>`:''}
         </div>
       </div>
-      <div class="report-actions" style="margin-top:6px">
-        <button class="btn" onclick="startSkillCheckFor('${enc}','literacy')">New Literacy Evaluation</button>
-        <button class="btn" onclick="startSkillCheckFor('${enc}','math')">New Math Evaluation</button>
-        <button class="btn ghost" onclick="startNextFor('${last.id}')">Start Next Quarter</button>
-        <button class="btn ghost" onclick="window.print()">Print Roundup</button>
-      </div>
+    </div>
+    <div class="pactions no-print">
+      <button class="btn" onclick="startSkillCheckFor('${enc}','literacy')">New Literacy</button>
+      <button class="btn" onclick="startSkillCheckFor('${enc}','math')">New Math</button>
+      <button class="btn ghost" onclick="startNextFor('${last.id}')">Next Quarter</button>
+      <button class="btn ghost" onclick="window.print()">Print</button>
     </div>
 
-    <div class="card">
-      <div class="eyebrow">Current Standing</div><h2>Where ${esc(first)} is right now</h2>
+    <div class="card psec">
+      <div class="eyebrow">At a glance</div><h2>Where ${esc(first)} is right now</h2>
       <div class="standgrid">${standing(latestLit,'Literacy')}${standing(latestMath,'Math')}</div>
+      ${growthLine?`<div class="glance-growth"><span class="gg-lbl">Growth</span> ${growthLine}</div>`:''}
     </div>
 
-    ${supportDocsHTML(name)}
-
-    <div class="card">
-      <div class="eyebrow">Growth Over Time</div><h2>The visual scale</h2>
-      <p class="lead">Every evaluation, plotted so you can see growth across the year. Bars are colored by band; the reading-rate chart compares ${esc(first)} to the national grade-level average.</p>
+    <div class="card psec">
+      <div class="eyebrow">Growth over time</div><h2>The visual scale</h2>
+      <p class="lead">Every evaluation, plotted so growth is visible at a glance. Bars are colored by band; the reading-rate chart compares ${esc(first)} to the national grade-level average.</p>
       ${growthSection('Literacy', lit)}
       ${growthSection('Math', math)}
       ${orfChart(lit)}
@@ -2156,34 +2193,21 @@ function renderScholarProfile(){
 
     ${skillChecksHTML(name)}
 
-    <div class="card">
-      <div class="eyebrow">Every Evaluation</div><h2>All data in one place</h2>
-      <p class="lead">Each check-in ${esc(first)} completes is captured here. Open any one for the full profile and plan, or add an evaluator note after the session.</p>
-      <div class="evallist">
-      ${all.slice().reverse().map(s=>{const r=s.result||{};const md=(ASSESSMENTS[s.grade+'|'+s.domainKey]&&(modulesFor(s.grade,s.domainKey).find(m=>m.key===(s.module||'full'))||{})).label||'Full';const bd=BANDS[r.overallBand||'developing'];return `<div class="evalrow">
-        <div class="evmain">
-          <div><div class="evtitle">${s.domainKey==='literacy'?'Literacy':'Math'} · ${esc(md)}</div>
-            <div class="footnote" style="margin-top:2px">${esc(s.date)} · ${PH(s.phase).quarter} · scored <b>${s.overall}%</b> · <span style="color:${bd.color};font-weight:700">${bd.label}</span></div></div>
-          <button class="btn ghost sm" onclick="openSaved('${s.id}')">Open</button>
-        </div>
-        <details class="evnote"${s.postNotes?' open':''}><summary>Evaluator note${s.postNotes?' ✓':''}</summary>
-          <textarea id="sn_${s.id}" placeholder="Add a note after this session…">${esc(s.postNotes||'')}</textarea>
-          <button class="btn sm" id="snb_${s.id}" onclick="saveSessionNote('${s.id}')">Save Note</button>
-        </details>
-      </div>`;}).join('')}
-      </div>
+    <div class="card psec">
+      <div class="eyebrow">Smart lesson plan</div><h2>Data-driven path to mastery</h2>
+      <p class="lead">A strategic, week-by-week plan for ${esc(first)}: the tool selects priority struggle areas, pulls the exact words to practice, sequences them developmentally, and schedules when to re-assess.${prof.lessonPlan?` <b>Current plan: ${prof.lessonPlan.count} weeks, generated ${esc(prof.lessonPlan.generated)}.</b>`:''}</p>
+      <div class="report-actions"><button class="btn" onclick="nav('lessonplan')">${prof.lessonPlan?'View / Update Lesson Plan':'Build Smart Lesson Plan'}</button>${prof.lessonPlan?`<button class="btn ghost" onclick="printLessonPlan('${enc}')">Print / Save as PDF</button>`:''}</div>
     </div>
 
     ${curriculumHTML(name)}
 
-    <div class="card">
-      <div class="eyebrow">Smart Lesson Plan</div><h2>Data-driven path to mastery</h2>
-      <p class="lead">Generate a strategic, week-by-week lesson plan for ${esc(first)} — the tool selects the priority struggle areas from the diagnostics and skill checks, pulls the exact words to practice, sequences them developmentally, and schedules when to re-assess each sub-domain.${prof.lessonPlan?` <b>Current plan: ${prof.lessonPlan.count} weeks, generated ${esc(prof.lessonPlan.generated)}.</b>`:''}</p>
-      <div class="report-actions"><button class="btn" onclick="nav('lessonplan')">${prof.lessonPlan?'View / Update Lesson Plan':'Build Smart Lesson Plan'}</button>${prof.lessonPlan?`<button class="btn ghost" onclick="printLessonPlan('${enc}')">Print / Save as PDF</button>`:''}</div>
+    <div class="foldgroup">
+      ${fold('Evaluation history', `${all.length} on file`, evalListInner(all), false)}
+      ${fold('Support &amp; documents', 'IEP / 504 &middot; family email &middot; files', supportDocsInner(name), false)}
     </div>
 
-    <div class="card" id="roundup">
-      <div class="eyebrow">Roundup</div><h2>${esc(first)}'s Snapshot</h2>
+    <div class="card psec" id="roundup">
+      <div class="eyebrow">Roundup</div><h2>${esc(first)}'s snapshot</h2>
       ${profileRoundupHTML(name,all,latestLit,latestMath)}
     </div>
   </div>`;
@@ -2320,11 +2344,9 @@ function saveFamilyEmail(enc){ const name=decodeURIComponent(enc); const el=docu
 function uploadDoc(enc,input){ const name=decodeURIComponent(enc); const f=input.files&&input.files[0]; if(!f)return; if(f.size>4*1024*1024){ alert('Please choose a file under 4 MB. Documents are stored securely in this browser.'); input.value=''; return; } const rd=new FileReader(); rd.onload=function(){ const prof=getProfile(name)||{}; const docs=(prof.documents||[]).slice(); docs.push({id:uid(),name:f.name,type:f.type||'file',size:f.size,dataUrl:rd.result,added:new Date().toISOString().slice(0,10)}); try{ saveProfile(name,{documents:docs}); }catch(e){ alert('This file is too large to store in the browser. Try a smaller file.'); return; } nav('profile'); }; rd.readAsDataURL(f); }
 function removeDoc(enc,id){ const name=decodeURIComponent(enc); if(!confirm('Remove this document?'))return; const prof=getProfile(name)||{}; saveProfile(name,{documents:(prof.documents||[]).filter(d=>d.id!==id)}); nav('profile'); }
 function fileSize(b){ return b>=1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB'; }
-function supportDocsHTML(name){
+function supportDocsInner(name){
   const enc=encodeURIComponent(name), prof=getProfile(name)||{}, docs=prof.documents||[];
-  return `<div class="card"><div class="eyebrow">Support &amp; Documents</div><h2>Plans &amp; attachments</h2>
-    <p class="lead">Flag ${esc(name.split(' ')[0])}'s learning plans, keep the family's contact on file, and store important documents right here — IEPs, 504 plans, evaluations, work samples, or anything you want on file.</p>
-    <div class="stdom">Family email</div>
+  return `<div class="stdom">Family email</div>
     <div class="report-actions" style="margin-top:6px"><input id="famEmail" type="email" placeholder="parent@example.com" value="${esc(prof.familyEmail||'')}" style="max-width:300px">
       <button class="btn sm" id="famEmailBtn" onclick="saveFamilyEmail('${enc}')">Save Email</button>
       <span class="footnote">Used to pre-address the family report so you can send it in one click.</span></div>
@@ -2339,8 +2361,26 @@ function supportDocsHTML(name){
     ${docs.length?`<div class="doclist">${docs.map(d=>`<div class="docrow"><div><div class="docname">${esc(d.name)}</div><div class="footnote" style="margin:0">${esc((d.type||'').split('/').pop()||'file')} · ${fileSize(d.size)} · added ${esc(d.added)}</div></div>
       <span><a class="btn ghost sm" href="${d.dataUrl}" download="${esc(d.name)}" target="_blank" rel="noopener">Open</a>
       <button class="btn ghost sm" onclick="removeDoc('${enc}','${d.id}')">Remove</button></span></div>`).join('')}</div>`
-      :'<div class="callout" style="margin-top:8px">No documents yet. Upload IEPs, 504 plans, or work samples to keep them with this scholar.</div>'}
-  </div>`;
+      :'<div class="callout" style="margin-top:8px">No documents yet. Upload IEPs, 504 plans, or work samples to keep them with this scholar.</div>'}`;
+}
+/* clean collapsible section for secondary/records content */
+function fold(title, meta, inner, open){
+  return `<details class="foldcard"${open?' open':''}>
+    <summary class="foldsum"><span class="fs-l"><span class="fs-t">${title}</span>${meta?`<span class="fs-m">${meta}</span>`:''}</span><span class="fs-chev">⌄</span></summary>
+    <div class="foldbody">${inner}</div></details>`;
+}
+function evalListInner(all){
+  return `<div class="evallist">${all.slice().reverse().map(s=>{const r=s.result||{};const md=(ASSESSMENTS[s.grade+'|'+s.domainKey]&&(modulesFor(s.grade,s.domainKey).find(m=>m.key===(s.module||'full'))||{})).label||'Full';const bd=BANDS[r.overallBand||'developing'];return `<div class="evalrow">
+    <div class="evmain">
+      <div><div class="evtitle">${s.domainKey==='literacy'?'Literacy':'Math'} · ${esc(md)}</div>
+        <div class="footnote" style="margin-top:2px">${esc(s.date)} · ${PH(s.phase).quarter} · scored <b>${s.overall}%</b> · <span style="color:${bd.color};font-weight:700">${bd.label}</span></div></div>
+      <button class="btn ghost sm" onclick="openSaved('${s.id}')">Open</button>
+    </div>
+    <details class="evnote"${s.postNotes?' open':''}><summary>Evaluator note${s.postNotes?' ✓':''}</summary>
+      <textarea id="sn_${s.id}" placeholder="Add a note after this session…">${esc(s.postNotes||'')}</textarea>
+      <button class="btn sm" id="snb_${s.id}" onclick="saveSessionNote('${s.id}')">Save Note</button>
+    </details>
+  </div>`;}).join('')}</div>`;
 }
 function profileRoundupHTML(name,all,latestLit,latestMath){
   const first=name.split(' ')[0];
