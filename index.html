@@ -563,6 +563,9 @@ tr:hover td{background:var(--mist)}
 .stayalert{margin-top:10px;border:1px solid #e6c98a;background:#fdf6e6;border-radius:var(--r-sm);padding:9px 12px}
 .stayalert .sa-h{font-family:var(--sans);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#9a6a12}
 .stayalert .sa-b{font-size:12.5px;color:#6b5836;margin-top:3px;line-height:1.45}
+.masterygrp{margin-top:10px}
+.mg-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-family:var(--sans);font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--teal);border-bottom:1px solid var(--line,#e7e1d6);padding-bottom:4px;margin-bottom:6px}
+.mg-count{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:#a07c50}
 </style>
 </head>
 <body>
@@ -1985,12 +1988,21 @@ function skillChecksHTML(name){
   const enc=encodeURIComponent(name), checks=((getProfile(name)||{}).skillChecks||[]).slice().reverse();
   const opts=SKILL_GROUPS.map(g=>`<optgroup label="${esc(g.label)}">${SKILL_PROBES.filter(s=>s.group===g.key).map(s=>`<option value="${s.id}">${esc(s.title)}</option>`).join('')}</optgroup>`).join('');
   const latestBySkill={}; ((getProfile(name)||{}).skillChecks||[]).forEach(c=>{ latestBySkill[c.skillId]=c; });
-  const masteryChips=Object.values(latestBySkill).map(c=>`<span class="chip" style="background:${BANDS[c.band].bg||'#f3efe7'};color:${BANDS[c.band].color};border:1px solid ${BANDS[c.band].color}55">${esc(c.title)} · ${esc(c.label)}</span>`).join('');
+  const attempted=Object.values(latestBySkill);
+  const byGroup={}; attempted.forEach(c=>{ const sk=skillById(c.skillId); const g=(sk&&sk.group)||'other'; (byGroup[g]=byGroup[g]||[]).push(c); });
+  const masteryBoard=SKILL_GROUPS.filter(g=>byGroup[g.key]).map(g=>{
+    const list=byGroup[g.key].slice().sort((a,b)=>a.title.localeCompare(b.title));
+    const mastered=list.filter(c=>c.band==='soaring').length;
+    const chips=list.map(c=>`<span class="chip" style="background:${BANDS[c.band].bg||'#f5f1e9'};color:${BANDS[c.band].color};border:1px solid ${BANDS[c.band].color}55">${esc(c.title)} · ${esc(c.label)}</span>`).join('');
+    return `<div class="masterygrp"><div class="mg-h">${esc(g.label)}<span class="mg-count">${mastered}/${list.length} mastered</span></div><div class="chips">${chips}</div></div>`;
+  }).join('');
   return `<div class="card"><div class="eyebrow">Skill Checks</div><h2>Quick targeted checks</h2>
-    <p class="lead">Run a fast, single-skill check any time — letter sounds, digraphs, diphthongs, phonemic awareness, speaking &amp; listening, and more. Each result is captured right here in ${esc(name.split(' ')[0])}'s profile.</p>
-    <div class="report-actions"><select id="skillPick" style="max-width:320px">${opts}</select>
+    <p class="lead">Run a fast, single-skill check any time — from the full assessment bank of letter sounds, phonics patterns, phonemic awareness, fluency, spelling, vocabulary, comprehension, speaking &amp; listening, and math subskills. Each result is captured right here in ${esc(name.split(' ')[0])}'s profile.</p>
+    <div class="report-actions"><select id="skillPick" style="max-width:340px">${opts}</select>
       <button class="btn" onclick="startProbe('${enc}',document.getElementById('skillPick').value)">Run Skill Check</button></div>
-    ${masteryChips?`<div style="margin-top:14px"><div class="stdom">Current skill mastery</div><div class="chips">${masteryChips}</div></div>`:''}
+    ${attempted.length?`<div style="margin-top:16px"><div class="stdom">Skill mastery map</div>
+      <div class="footnote" style="margin:2px 0 4px">Grouped by area, colored by latest result: <b style="color:${BANDS.soaring.color}">Mastered</b> · <b style="color:${BANDS.ontrack.color}">Developing</b> · <b style="color:${BANDS.developing.color}">Emerging</b> · <b style="color:${BANDS.emerging.color}">Not Yet</b>.</div>
+      ${masteryBoard}</div>`:''}
     ${checks.length?`<div style="margin-top:14px"><div class="stdom">History</div>
       <table><thead><tr><th>Date</th><th>Skill</th><th>Result</th><th>Score</th></tr></thead><tbody>
       ${checks.map(c=>`<tr><td>${esc(c.date)}</td><td>${esc(c.title)}</td><td style="color:${BANDS[c.band].color};font-weight:700">${esc(c.label)}</td><td>${c.correct}/${c.total} (${c.pct}%)</td></tr>`).join('')}
