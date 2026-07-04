@@ -2800,7 +2800,8 @@ function buildScholarDeck(grade,domain){
       }
     });
   }
-  function show(){var s=SLIDES[i]||{stim:''};document.getElementById('stim').innerHTML=s.stim;document.getElementById('ct').textContent=(i+1)+' / '+SLIDES.length;fit();}
+  function show(){var s=SLIDES[i]||{stim:''};document.getElementById('stim').innerHTML=s.stim;document.getElementById('ct').textContent=(i+1)+' / '+SLIDES.length;fit();requestAnimationFrame(fit);setTimeout(fit,60);}
+  if(document.fonts&&document.fonts.ready){document.fonts.ready.then(fit);}
   function go(d){i=Math.max(0,Math.min(SLIDES.length-1,i+d));show();}
   document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();go(1);}if(e.key==='ArrowLeft')go(-1);});
   document.body.addEventListener('click',function(e){if(e.target.closest('.nav'))return;go(1);});
