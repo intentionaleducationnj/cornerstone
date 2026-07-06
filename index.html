@@ -721,14 +721,14 @@ const K_LITERACY = {
       items:[{label:"‘cup’ without /k/",hint:"up"},{label:"add /s/ to ‘top’",hint:"stop"},{label:"‘cat’ → change /k/ to /b/",hint:"bat"},{label:"‘sand’ without /s/",hint:"and"},{label:"‘meat’ → change /m/ to /s/",hint:"seat"},{label:"‘flag’ without /f/",hint:"lag"}],
       interventions:["Use letter tiles the child can physically add, remove, and swap","“What's left?” deletion games with picture support","Substitution chants — change one sound to make a new word"] },
     { id:"lit_letnames", strand:"Phonics & Word Recognition", title:"Letter Naming Fluency", standard:"CCSS K.RF.1d · DIBELS LNF", type:"fluency", goal:"naming letters automatically", unit:"letters", timed:true,
-      script:"Timed 1-minute task — use the timer. Child names letters left-to-right across the grid. Enter the number named correctly.",
-      stimulus:{type:"tiles", content:["m","A","t","S","f","P","i","R","d","O","n","L","c","H","b","E","s","T","g","a","p","N","o","F"]},
+      script:"Timed 1-minute task — use the timer. All 26 letters appear in mixed case and mixed order (STEP-style). Child names letters left-to-right across the grid. Enter the number named correctly.",
+      stimulus:{type:"tiles", content:["S","m","B","t","A","p","F","i","N","r","E","o","H","c","D","l","U","g","K","w","J","v","Y","x","Q","z"]},
       benchmarks:{ fall:{core:25,strat:16}, winter:{core:37,strat:31}, spring:{core:42,strat:35} },
       interventions:["5-minute daily alphabet arc with letter naming","Letter-name speed drills using flashcards (name, not sound)","Multisensory letter formation while naming each letter"] },
-    { id:"lit_lettersounds", strand:"Phonics & Decoding", title:"Letter–Sound Correspondence", standard:"CCSS K.RF.3a", type:"items", goal:"producing the most common letter sounds",
-      script:"Point to each letter. <span class='say'>“What sound does this letter make?”</span>",
-      stimulus:{type:"tiles", content:["s","m","a","t","p","f","n","i","d","o"]},
-      items:[{label:"s",hint:"/s/"},{label:"m",hint:"/m/"},{label:"a",hint:"/a/"},{label:"t",hint:"/t/"},{label:"p",hint:"/p/"},{label:"f",hint:"/f/"},{label:"n",hint:"/n/"},{label:"i",hint:"/i/"},{label:"d",hint:"/d/"},{label:"o",hint:"/o/"}],
+    { id:"lit_lettersounds", strand:"Phonics & Decoding", title:"Letter–Sound Correspondence", standard:"CCSS K.RF.3a", type:"items", goal:"producing all 26 most-common letter sounds",
+      script:"Point to each letter. <span class='say'>“What sound does this letter make?”</span> All 26 letters, in mixed order (STEP-style) — for full letter-sound mastery.",
+      stimulus:{type:"tiles", content:["s","m","a","t","p","f","n","i","d","o","b","r","e","h","c","l","u","g","k","w","j","v","y","x","q","z"]},
+      items:[{label:"s",hint:"/s/"},{label:"m",hint:"/m/"},{label:"a",hint:"/a/"},{label:"t",hint:"/t/"},{label:"p",hint:"/p/"},{label:"f",hint:"/f/"},{label:"n",hint:"/n/"},{label:"i",hint:"/i/"},{label:"d",hint:"/d/"},{label:"o",hint:"/o/"},{label:"b",hint:"/b/"},{label:"r",hint:"/r/"},{label:"e",hint:"/e/"},{label:"h",hint:"/h/"},{label:"c",hint:"/k/"},{label:"l",hint:"/l/"},{label:"u",hint:"/u/"},{label:"g",hint:"/g/"},{label:"k",hint:"/k/"},{label:"w",hint:"/w/"},{label:"j",hint:"/j/"},{label:"v",hint:"/v/"},{label:"y",hint:"/y/"},{label:"x",hint:"/ks/"},{label:"q",hint:"/kw/"},{label:"z",hint:"/z/"}],
       interventions:["Orton-Gillingham 3-part drill (see/say, sound, write)","Sound-spelling cards reviewed daily with key words","Tactile letter-sound practice in sand or on textured cards"] },
     { id:"lit_nwf", strand:"Phonics & Decoding", title:"Nonsense Word Decoding", standard:"CCSS K.RF.3 · DIBELS NWF", type:"fluency", goal:"sounding out unknown (decodable) words", unit:"correct letter-sounds", timed:true,
       script:"Timed 1-minute task — use the timer. Child reads made-up CVC words by sounding out. Enter total correct letter-sounds.",
@@ -1519,18 +1519,23 @@ function staffSignIn(){ const el=document.getElementById('staffPass'); const v=(
   if(v===STAFF_PASSCODE){ try{ localStorage.setItem(STAFF_KEY,"1"); }catch(e){} document.body.classList.remove('gated'); nav('home'); }
   else { const err=document.getElementById('staffErr'); if(err) err.style.display='block'; if(el){ el.value=''; el.focus(); } } }
 function staffSignOut(){ try{ localStorage.removeItem(STAFF_KEY); }catch(e){} nav('home'); }
+function toggleStaffPass(){ const i=document.getElementById('staffPass'), b=document.getElementById('staffShow'); if(!i)return; if(i.type==='password'){ i.type='text'; if(b)b.textContent='Hide'; } else { i.type='password'; if(b)b.textContent='Show'; } i.focus(); }
 function renderStaffGate(){
   document.body.classList.add('gated');
   app.innerHTML=`<div class="screen"><div class="card gatecard">
     <div class="brandcenter">${ieLockup(true,true)}</div>
     <h2 style="text-align:center;margin-top:18px">Staff Sign In</h2>
-    <p class="lead" style="text-align:center">The Cornerstone Assessment is a staff tool. Please enter the staff passcode to continue.</p>
-    <div style="max-width:340px;margin:10px auto 0">
-      <input id="staffPass" type="password" placeholder="Staff passcode" onkeydown="if(event.key==='Enter')staffSignIn()" style="text-align:center">
+    <p class="lead" style="text-align:center">Welcome. The Cornerstone Assessment is a staff-only tool. Enter your staff passcode below to open the platform. You will stay signed in on this device.</p>
+    <div style="max-width:360px;margin:14px auto 0">
+      <label style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gold-brand,#a07c50)">Staff passcode</label>
+      <div style="position:relative;margin-top:6px">
+        <input id="staffPass" type="password" placeholder="Enter passcode" onkeydown="if(event.key==='Enter')staffSignIn()" style="text-align:center;width:100%">
+        <button type="button" onclick="toggleStaffPass()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--teal);font-size:12px;font-weight:700;cursor:pointer" id="staffShow">Show</button>
+      </div>
       <div id="staffErr" style="display:none;color:var(--rose-d,#c1543b);text-align:center;font-size:13px;margin-top:8px">That passcode didn't match. Please try again.</div>
-      <button class="btn" style="width:100%;margin-top:12px" onclick="staffSignIn()">Sign In</button>
+      <button class="btn" style="width:100%;margin-top:14px" onclick="staffSignIn()">Sign In &rarr;</button>
     </div>
-    <p class="footnote" style="text-align:center;margin-top:16px">Staff access only. Individual staff logins are coming with our secure platform.</p>
+    <p class="footnote" style="text-align:center;margin-top:18px">Staff access only. Don't have the passcode? Contact your Intentional Education administrator. Individual staff logins are coming with our secure platform.</p>
   </div></div>`;
   document.getElementById('appfoot').innerHTML='';
   const p=document.getElementById('staffPass'); if(p) p.focus();
@@ -1644,17 +1649,17 @@ const SKILL_GROUPS = [
 ];
 const SKILL_PROBES = [
   // ---- Alphabet & letter sounds ----
-  {id:'sk_upper', group:'alpha', title:'Letter Naming — Uppercase', standard:'CCSS RF.K.1d', band:'PK–K', read:true, domain:'literacy',
-   script:"Point to each letter. <span class='say'>“What letter is this?”</span>",
-   items:[{label:'M'},{label:'A'},{label:'S'},{label:'T'},{label:'B'},{label:'F'},{label:'R'},{label:'E'},{label:'O'},{label:'P'}],
+  {id:'sk_upper', group:'alpha', title:'Letter Naming — Uppercase (all 26)', standard:'CCSS RF.K.1d', band:'PK–K', read:true, domain:'literacy',
+   script:"Point to each letter. <span class='say'>“What letter is this?”</span> All 26 uppercase letters in mixed order (STEP-style) — full mastery.",
+   items:[{label:'M'},{label:'A'},{label:'T'},{label:'S'},{label:'P'},{label:'B'},{label:'F'},{label:'R'},{label:'I'},{label:'O'},{label:'N'},{label:'C'},{label:'E'},{label:'H'},{label:'D'},{label:'L'},{label:'U'},{label:'G'},{label:'W'},{label:'K'},{label:'J'},{label:'V'},{label:'Y'},{label:'Q'},{label:'X'},{label:'Z'}],
    interventions:['Name-first alphabet work','Sing and point on an alphabet chart','Multisensory letter tracing']},
-  {id:'sk_lower', group:'alpha', title:'Letter Naming — Lowercase', standard:'CCSS RF.K.1d', band:'PK–K', read:true, domain:'literacy',
-   script:"Point to each letter. <span class='say'>“What letter is this?”</span>",
-   items:[{label:'m'},{label:'a'},{label:'s'},{label:'t'},{label:'b'},{label:'g'},{label:'d'},{label:'e'},{label:'o'},{label:'p'}],
+  {id:'sk_lower', group:'alpha', title:'Letter Naming — Lowercase (all 26)', standard:'CCSS RF.K.1d', band:'PK–K', read:true, domain:'literacy',
+   script:"Point to each letter. <span class='say'>“What letter is this?”</span> All 26 lowercase letters in mixed order (STEP-style) — full mastery.",
+   items:[{label:'a'},{label:'m'},{label:'t'},{label:'s'},{label:'i'},{label:'p'},{label:'b'},{label:'f'},{label:'r'},{label:'o'},{label:'n'},{label:'c'},{label:'e'},{label:'h'},{label:'d'},{label:'l'},{label:'u'},{label:'g'},{label:'w'},{label:'k'},{label:'j'},{label:'v'},{label:'y'},{label:'q'},{label:'x'},{label:'z'}],
    interventions:['Match uppercase to lowercase','Trace lowercase letters in sand','Alphabet arc sorting']},
-  {id:'sk_lsound', group:'alpha', title:'Letter Sounds', standard:'CCSS RF.K.3a', band:'K', read:true, domain:'literacy',
-   script:"Point to each letter. <span class='say'>“What sound does this letter make?”</span>",
-   items:[{label:'m',hint:'/m/'},{label:'s',hint:'/s/'},{label:'a',hint:'/a/'},{label:'t',hint:'/t/'},{label:'b',hint:'/b/'},{label:'f',hint:'/f/'},{label:'i',hint:'/i/'},{label:'r',hint:'/r/'}],
+  {id:'sk_lsound', group:'alpha', title:'Letter Sounds (all 26)', standard:'CCSS RF.K.3a', band:'K', read:true, domain:'literacy',
+   script:"Point to each letter. <span class='say'>“What sound does this letter make?”</span> All 26 letter sounds in mixed order (STEP-style) — full mastery.",
+   items:[{label:'s',hint:'/s/'},{label:'m',hint:'/m/'},{label:'a',hint:'/a/'},{label:'t',hint:'/t/'},{label:'p',hint:'/p/'},{label:'f',hint:'/f/'},{label:'n',hint:'/n/'},{label:'i',hint:'/i/'},{label:'d',hint:'/d/'},{label:'o',hint:'/o/'},{label:'b',hint:'/b/'},{label:'r',hint:'/r/'},{label:'e',hint:'/e/'},{label:'h',hint:'/h/'},{label:'c',hint:'/k/'},{label:'l',hint:'/l/'},{label:'u',hint:'/u/'},{label:'g',hint:'/g/'},{label:'k',hint:'/k/'},{label:'w',hint:'/w/'},{label:'j',hint:'/j/'},{label:'v',hint:'/v/'},{label:'y',hint:'/y/'},{label:'x',hint:'/ks/'},{label:'q',hint:'/kw/'},{label:'z',hint:'/z/'}],
    interventions:['Letter-sound cards, sound of the day','Keyword picture for each letter','Blend sounds into simple words']},
   // ---- Phonemic awareness ----
   {id:'sk_rhyme', group:'pa', title:'Rhyme Recognition', standard:'CCSS RF.K.2a', band:'PK–K', domain:'literacy',
