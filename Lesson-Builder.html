@@ -158,8 +158,9 @@
     .pages{ display:block; gap:0; }
     .page{ width:8.5in; min-height:11in; box-shadow:none; border-radius:0; margin:0; padding:0.5in 0.62in 0.42in; page-break-after:always; }
     .page:last-child{ page-break-after:auto; }
-    body.pl #ws{ display:none; }
-    body.pw #doc{ display:none; }
+    body.pl #ws, body.pl #hw{ display:none; }
+    body.pw #doc, body.pw #hw{ display:none; }
+    body.ph #doc, body.ph #ws{ display:none; }
   }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -184,6 +185,7 @@
       <button class="btn ghost" id="homeBtn" style="width:100%;margin-bottom:10px">&larr; Scholars (Home)</button>
       <button class="btn dark" id="toPdf">⬇ Convert lesson plan to PDF</button>
       <button class="btn gold" id="toWs" style="width:100%;padding:11px;margin-top:8px">⬇ Convert student worksheet to PDF</button>
+      <button class="btn ghost" id="toHw" style="width:100%;padding:10px;margin-top:8px">⬇ Convert home practice to PDF</button>
       <div class="hintline">Opens Print &rarr; choose <b>Save as PDF</b>. In the dialog, set Margins to <b>None</b> and turn <b>Headers and footers off</b> for a clean copy.</div>
       <div class="hintline" id="savedNote" style="color:#2e7d32;font-weight:bold">Autosave on</div>
       <label class="f" style="margin-top:10px">Reopen a saved lesson (to add notes later)</label>
@@ -269,6 +271,14 @@
         <div class="hintline">Opens a ready-to-send draft in your email app. Nothing sends automatically &mdash; you review and hit send.</div>
       </div>
 
+      <div class="grp">
+        <h3>Homework &amp; review</h3>
+        <div class="hintline">A short home-practice page prints from the button above. Log it when it comes back:</div>
+        <label class="f" style="margin-top:6px">Homework returned</label>
+        <select class="t" id="f_hwstatus"><option value="">Not yet</option><option value="Complete">Complete</option><option value="Partial">Partial</option><option value="Not done">Not done</option></select>
+        <label class="f">Homework notes (review on return)</label><textarea class="t" id="f_hwnotes"></textarea>
+      </div>
+
       <div class="grp" style="border-bottom:0">
         <h3>Instructor notes</h3>
         <textarea class="t" id="f_notes" placeholder="Notes print in a box at the bottom (optional)."></textarea>
@@ -283,6 +293,7 @@
   <main class="main"><div class="stack">
     <div class="pages" id="doc"></div>
     <div class="pages" id="ws"></div>
+    <div class="pages" id="hw"></div>
   </div></main>
 
 </div>
@@ -412,7 +423,8 @@
     resources:["Dictated Words sheet","Sight Word Tracing Cards","Phonics Hand-Out"],
     results:{accuracy:"",strengths:"",reteach:"",next:""},
     notes:"", notesPrint:false,
-    parentEmail:"parent.johnson@example.com", complete:false
+    parentEmail:"parent.johnson@example.com", complete:false,
+    homework:{status:"",notes:""}
   };
   var SAMPLE=JSON.parse(JSON.stringify(state));
   /* In the app these come from the scholar roster and the evaluator list. */
@@ -522,7 +534,7 @@
     var pg3=section(6,'Draw your favorite part','Show what happened in the story.','<div class="drawbox"></div>');
     w.innerHTML=pageShell(pg1,who,'ws',1,3)+pageShell(pg2,who,'ws',2,3)+pageShell(pg3,who,'ws',3,3);
   }
-  function lessonPayload(){ return {scholar:state.scholar,grade:state.grade,instructor:state.instructor,instrDate:state.instrDate,skill:state.skill,skillKey:state.skillKey,standard:state.standard,decodable:state.decodable,sightList:state.sightList,results:state.results,notes:state.notes,parentEmail:state.parentEmail,complete:!!state.complete}; }
+  function lessonPayload(){ return {scholar:state.scholar,grade:state.grade,instructor:state.instructor,instrDate:state.instrDate,skill:state.skill,skillKey:state.skillKey,standard:state.standard,decodable:state.decodable,sightList:state.sightList,results:state.results,notes:state.notes,parentEmail:state.parentEmail,complete:!!state.complete,homework:state.homework}; }
   function postToParent(type,extra){ try{ if(window.parent && window.parent!==window){ window.parent.postMessage(Object.assign({type:type,lesson:lessonPayload()},extra||{}),'*'); } }catch(e){} }
   function saveState(){ try{
     localStorage.setItem('ieLB_current', JSON.stringify(state));
@@ -533,7 +545,27 @@
     var el=document.getElementById('savedNote'); if(el){ el.textContent='Autosaved '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); }
     postToParent('ie-lesson-save');
   }catch(e){} }
-  function renderAll(){ renderDoc(); renderWs(); saveState(); }
+  function renderHw(){
+    var first=(state.scholar.split(' ')[0]||state.scholar);
+    var sz=wsSizes(state.grade); var who=whoBlock();
+    var read=state.blend.slice(0,6).map(function(w){return '<span class="word apl">'+esc(w)+'</span>';}).join('');
+    var writeRows=state.dict.slice(0,3).map(function(w){return '<div class="swrow"><div class="swlab apl">'+esc(w)+'</div><div class="rule3"><span class="tr apl">'+esc(w)+'</span></div><div class="rule3"></div></div>';}).join('');
+    var story=(STORIES[state.skillKey]||[]).map(function(s){return '<span class="s apl">'+esc(s)+'</span>';}).join('');
+    var talk=state.questions.slice(0,2).map(function(q){return '<li class="apl" style="font-size:15px;margin:4px 0">'+esc(q)+'</li>';}).join('');
+    var famNote='This week '+first+' is practicing '+state.skill+'. A few minutes each day makes a big difference &mdash; read the words together, practice writing, and read the little story out loud.';
+    var w=document.getElementById('hw');
+    w.style.setProperty('--disp', dispStack()); w.style.setProperty('--hw', sz.hw+'px'); w.style.setProperty('--story', sz.story+'px'); w.style.setProperty('--read', sz.read+'px');
+    var title='<div class="wsub" style="text-align:center;color:var(--gold);font-weight:bold;text-transform:uppercase;letter-spacing:1.5px;font-size:11px;font-style:normal">Home Practice</div>'
+      +'<h1>'+esc(first)+"&rsquo;s Home Practice</h1><div class=\"wsub apl\">"+esc(state.skill)+'</div>';
+    var body=title
+      +'<div class="storywrap" style="border-left:4px solid var(--gold);background:#fbf8f0"><b>Family note:</b> '+famNote+'</div>'
+      +section(1,'Read these words every day','Point to each word and read it together.','<div class="cardgrid">'+read+'</div>')
+      +section(2,'Practice writing','Trace the word, then write it on your own.','<div class="colhd"><div>Word</div><div>Trace</div><div>Write</div></div>'+writeRows)
+      +section(3,'Read the story &mdash; '+esc(state.decodable),'Read it two times, then talk about it.','<div class="storywrap"><div class="story">'+story+'</div></div><ul style="margin:8px 0 0;padding-left:20px">'+talk+'</ul>')
+      +section(4,'Grown-up checklist','','<div style="font-size:14px;line-height:2.1"><div>&#9744; We read the words</div><div>&#9744; We practiced writing</div><div>&#9744; We read the story</div></div><div class="dir" style="margin:8px 0 0 0">How did it go? <span style="display:inline-block;border-bottom:1px solid #999;min-width:60%;height:16px"></span></div>');
+    w.innerHTML=pageShell(body,who,'ws',1,1);
+  }
+  function renderAll(){ renderDoc(); renderWs(); renderHw(); saveState(); }
 
   // ---- sidebar chip editors ----
   function paintChips(id,arr,fake){
@@ -600,6 +632,8 @@
   // post-session results
   function bindR(id,key){ var el=document.getElementById(id); el.value=state.results[key]; el.addEventListener('input',function(){ state.results[key]=el.value; renderDoc(); }); }
   bindR('r_accuracy','accuracy'); bindR('r_strengths','strengths'); bindR('r_reteach','reteach'); bindR('r_next','next');
+  var hs=document.getElementById('f_hwstatus'); hs.value=state.homework.status; hs.addEventListener('change',function(){ state.homework.status=this.value; saveState(); });
+  var hn=document.getElementById('f_hwnotes'); hn.value=state.homework.notes; hn.addEventListener('input',function(){ state.homework.notes=this.value; saveState(); });
   // sight list dropdown
   var sl=document.getElementById('f_sightlist');
   sl.innerHTML=[1,2,3,4,5,6,7,8,9,10].map(function(n){return '<option value="'+n+'"'+(n===state.sightList?' selected':'')+'>List '+n+' of 10</option>';}).join('');
@@ -629,6 +663,7 @@
   }
   document.getElementById('toPdf').addEventListener('click',function(){ toPDF('pl'); });
   document.getElementById('toWs').addEventListener('click',function(){ toPDF('pw'); });
+  document.getElementById('toHw').addEventListener('click',function(){ toPDF('ph'); });
   document.getElementById('reset').addEventListener('click',function(){ state=JSON.parse(JSON.stringify(SAMPLE)); initFields(); fillDecodables(); paintAll(); paintSuggestions(); renderAll(); });
   // ---- session close-out: parent summary + draft email (drafts only; never auto-sends) ----
   function weekdayOf(iso){ if(!iso) return ''; var p=iso.split('-'); if(p.length!==3) return ''; var d=new Date(+p[0],+p[1]-1,+p[2]); return d.toLocaleDateString('en-US',{weekday:'long'}); }
@@ -692,6 +727,9 @@
     document.getElementById('r_next').value=state.results.next;
     document.getElementById('f_parent').value=state.parentEmail||'';
     document.getElementById('f_complete').checked=!!state.complete;
+    if(!state.homework) state.homework={status:'',notes:''};
+    document.getElementById('f_hwstatus').value=state.homework.status||'';
+    document.getElementById('f_hwnotes').value=state.homework.notes||'';
     sl.value=state.sightList;
   }
   try{ var _s=localStorage.getItem('ieLB_current'); if(_s){ var _o=JSON.parse(_s); if(_o&&_o.scholar){ for(var _k in _o){ if(_o.hasOwnProperty(_k)) state[_k]=_o[_k]; } } } }catch(e){}

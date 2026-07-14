@@ -3275,9 +3275,9 @@ function bindLessonMessages(){
 function lessonHistoryHTML(name){
   const prof=getProfile(name)||{}; const log=Array.isArray(prof.lessonLog)?prof.lessonLog:[];
   if(!log.length) return '';
-  const rows=log.slice(0,12).map(l=>`<tr><td style="white-space:nowrap">${esc(l.instrDate||'')}</td><td>${esc(l.skill||'')}</td><td class="footnote">${l.complete?'<span style="color:#2e7d32;font-weight:bold">Complete</span>':'In progress'}</td></tr>`).join('');
+  const rows=log.slice(0,12).map(l=>{const hw=(l.homework&&l.homework.status)||'';return `<tr><td style="white-space:nowrap">${esc(l.instrDate||'')}</td><td>${esc(l.skill||'')}</td><td class="footnote">${l.complete?'<span style="color:#2e7d32;font-weight:bold">Complete</span>':'In progress'}</td><td class="footnote">${hw?esc(hw):'&mdash;'}</td></tr>`;}).join('');
   return `<div class="card psec"><div class="eyebrow">Lesson history</div><h2>${esc(name.split(' ')[0])}&rsquo;s saved lessons</h2>
-    <table><thead><tr><th>Date of instruction</th><th>Skill</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
+    <table><thead><tr><th>Date of instruction</th><th>Skill</th><th>Session</th><th>Homework</th></tr></thead><tbody>${rows}</tbody></table>
     <p class="footnote" style="margin-top:6px">Saved automatically from the Lesson Builder. Open the Lesson Builder to add post-session notes.</p></div>`;
 }
 /* Map a scholar's flagged literacy skill to a Lesson Builder preset key. */
