@@ -379,36 +379,48 @@
   var SKILL_ORDER=[["a","Short vowel /a/"],["e","Short vowel /e/"],["i","Short vowel /i/"],["o","Short vowel /o/"],["u","Short vowel /u/"],["sh","Digraph /sh/"],["ch","Digraph /ch/"],["th","Digraph /th/"],["lbl","Initial l-blends"],["rbl","Initial r-blends"],["vce","Magic e (VCe)"]];
   var RES_SUGG=["Alphabet Tracing Document","K Tracing Cards","Sight Word Tracing Cards","Dictated Words sheet","Decodable Reader Questions","Sight Words List","Phonics Hand-Out"];
   var HEART_SUGG=["the","was","said","you","are","have","of","to","they","one","come","from"];
-  /* Decodable reader options per skill (placeholder titles with diverse character names;
-     the full illustrated, culturally-relevant readers arrive in Phase B). */
-  var DECODABLES={
-    a:["Sam and the Cat Nap (/a/)","Nia Has a Map (/a/)","Dad and the Van (/a/)"],
-    e:["Ten Red Hens (/e/)","Deb Gets Wet (/e/)","The Pet Vet (/e/)"],
-    i:["The Big Pig Dig (/i/)","Kim Wins (/i/)","Rick and the Kit (/i/)"],
-    o:["The Hot Pot (/o/)","Rosa and the Fox (/o/)","Tom on Top (/o/)"],
-    u:["Gus the Pup (/u/)","Bud in the Mud (/u/)","The Sun and the Bug (/u/)"],
-    sh:["Fish in the Shop (/sh/)","Trish Will Wish (/sh/)","The Shell Shed (/sh/)"],
-    ch:["Chip and the Chick (/ch/)","Lunch on the Bench (/ch/)","Rich Chad Runs (/ch/)"],
-    th:["The Thin Moth (/th/)","This and That (/th/)","Beth in the Bath (/th/)"],
-    lbl:["Glad Fran and the Flag (l-blends)","Clap and Clip (l-blends)","The Plum Plan (l-blends)"],
-    rbl:["Fred the Frog (r-blends)","The Crab Grabs (r-blends)","Trip in the Truck (r-blends)"],
-    vce:["Jake and the Lake (magic e)","Kate Bakes a Cake (magic e)","Pete's Bike Ride (magic e)"]
+  /* Original, skill-matched decodable readers: each has controlled-text sentences and
+     comprehension questions matched to THAT story (diverse character names). */
+  var DECS={
+    a:[
+      {t:"Sam and the Cat Nap (/a/)", s:["Sam has a tan cat.","The cat sat on a mat.","Nia ran to the cat.","The cat had a nap.","Sam can pat the cat.","Nia and Sam nap too."], q:["Who has a cat?","Where did the cat sit?","What did the cat do on the mat?","Who ran to the cat?","How do you think the cat felt?"]},
+      {t:"Nia Has a Map (/a/)", s:["Nia has a big map.","The map is in a bag.","Nia and Dad ran fast.","They ran to the dam.","A cab sat by the dam.","Nia can tag Dad!"], q:["Who has a map?","Where was the map?","Where did Nia and Dad run?","What sat by the dam?","Why do you think they ran fast?"]}
+    ],
+    e:[
+      {t:"Ten Red Hens (/e/)", s:["Deb has ten red hens.","The hens are in a pen.","Deb fed the hens.","The hens peck and peck.","One hen got wet.","Deb and the hens rest."], q:["Who has hens?","How many hens are there?","Where are the hens?","What did the hens do?","What happened to one hen?"]},
+      {t:"The Pet Vet (/e/)", s:["Ben has a pet.","The pet is a red hen.","The hen is not well.","Ben led the hen to the vet.","The vet met Ben.","Now the hen feels well."], q:["Who has a pet?","What is the pet?","Where did Ben lead the hen?","Who met Ben?","How does the hen feel at the end?"]}
+    ],
+    i:[
+      {t:"The Big Pig Dig (/i/)", s:["Kim has a big pig.","The pig can dig.","It digs a pit.","Kim hid a fig in the pit.","The pig did not miss it.","Kim and the pig win!"], q:["Who has a pig?","What can the pig do?","What did Kim hide?","Where did Kim hide the fig?","Why is Kim happy?"]}
+    ],
+    o:[
+      {t:"The Hot Pot (/o/)", s:["Tom has a hot pot.","A fox sat on a log.","The dog can hop.","Tom got a mop.","The dog hops a lot.","Tom pats the dog."], q:["Who has a hot pot?","Where did the fox sit?","What can the dog do?","What did Tom get?","How does Tom treat the dog?"]},
+      {t:"Rosa and the Fox (/o/)", s:["Rosa is on top of a rock.","A fox is by the pond.","Rosa got a box.","The box is for the fox.","The fox hops in the box.","Rosa and the fox jog."], q:["Who is on the rock?","Where is the fox?","What did Rosa get?","Who is the box for?","What did the fox do?"]}
+    ],
+    u:[
+      {t:"Gus the Pup (/u/)", s:["Gus has a pup.","The pup is in the mud.","Gus got a cup.","The pup can run.","Gus gives the pup a hug.","The sun is up."], q:["Who has a pup?","Where is the pup?","What did Gus get?","What can the pup do?","How does Gus feel about the pup?"]}
+    ],
+    sh:[
+      {t:"Fish in the Shop (/sh/)", s:["A fish is in the shop.","Trish has a shell.","The fish can dash.","Trish gets a dish.","The shop has a shed.","Trish will wish for a fish."], q:["Where is the fish?","Who has a shell?","What can the fish do?","What did Trish get?","What does Trish wish for?"]}
+    ],
+    ch:[
+      {t:"Chad and the Chick (/ch/)", s:["Chad has a chick.","The chick sits on a bench.","Chad eats his lunch.","The chick can chat.","Chad has a chip.","Chad and the chick munch."], q:["Who has a chick?","Where does the chick sit?","What does Chad eat?","What can the chick do?","What do they do together?"]}
+    ],
+    th:[
+      {t:"The Thin Moth (/th/)", s:["This is Beth.","Beth is in the bath.","A thin moth is on the path.","Beth can see the moth.","The moth is with Beth.","Beth and the moth are pals."], q:["Who is in the bath?","What is on the path?","What can Beth see?","Where is the moth?","How do Beth and the moth feel?"]}
+    ],
+    lbl:[
+      {t:"Glad Fran and the Flag (l-blends)", s:["Fran has a flag.","She is so glad.","Fran can clap.","The flag is on a clip.","Fran has a plan.","Glad Fran claps for the flag."], q:["Who has a flag?","How does Fran feel?","What can Fran do?","Where is the flag?","What does Fran have at the end?"]}
+    ],
+    rbl:[
+      {t:"Fred the Frog (r-blends)", s:["Fred has a frog.","The frog sits on the grass.","Fred can trot.","The frog is by the truck.","Fred grabs the frog.","The frog and Fred play."], q:["Who has a frog?","Where does the frog sit?","What can Fred do?","Where is the frog?","What do Fred and the frog do?"]}
+    ],
+    vce:[
+      {t:"Jake and the Lake (magic e)", s:["Jake has a bike.","He rode to the lake.","Kate made a cake.","They ate by the lake.","Pete came late.","Jake, Kate, and Pete had a fine time."], q:["Who has a bike?","Where did Jake ride?","What did Kate make?","Where did they eat?","Who came late?"]}
+    ]
   };
-  /* Original, skill-matched decodable passages (short, controlled text, diverse names).
-     Placeholder-quality for the prototype; the fully illustrated readers arrive in Phase B. */
-  var STORIES={
-    a:["Sam has a tan cat.","The cat sat on a map.","Nia ran to Sam.","The cat had a nap.","Sam can pat the cat.","Nia and Sam nap too."],
-    e:["Deb has a red hen.","The hen is in a pen.","Ten hens peck.","Deb fed the hens.","The hens get wet.","Deb and the hens rest."],
-    i:["Kim has a big pig.","The pig can dig.","It digs a pit.","Kim hid a fig.","The pig sits.","Kim wins!"],
-    o:["Tom has a hot dog.","The dog sits on top.","A fox is on a log.","Tom got a mop.","The dog hops a lot.","Tom pats the dog."],
-    u:["Gus has a pup.","The pup is in the mud.","Gus got a cup.","The pup can run.","Gus gives the pup a hug.","The sun is up."],
-    sh:["A fish is in the shop.","Trish has a shell.","The fish can dash.","Trish gets a dish.","The shop has a shed.","Trish will wish for a fish."],
-    ch:["Chad has a chick.","The chick sits on a bench.","Chad eats his lunch.","The chick can chat.","Chad has a chip.","Chad and the chick munch."],
-    th:["This is Beth.","Beth is in the bath.","A thin moth is on the path.","Beth can see the moth.","The moth is with Beth.","Beth and the moth are pals."],
-    lbl:["Fran has a flag.","She is so glad.","Fran can clap.","The flag is on a clip.","Fran has a plan.","Glad Fran claps for the flag."],
-    rbl:["Fred has a frog.","The frog sits on the grass.","Fred can trot.","The frog is by the truck.","Fred grabs the frog.","The frog and Fred play."],
-    vce:["Jake has a bike.","He rode to the lake.","Kate made a cake.","They ate by the lake.","Pete came late.","Jake, Kate, and Pete had a fine time."]
-  };
+  function decList(k){ return DECS[k||state.skillKey]||[]; }
+  function decOf(){ var l=decList(); for(var i=0;i<l.length;i++){ if(l[i].t===state.decodable) return l[i]; } return l[0]||{t:'',s:[],q:[]}; }
 
   var state={
     skillKey:"a", decodable:"Sam and the Cat Nap (/a/)",
@@ -419,7 +431,7 @@
     blend:["cat","fan","map","bag"], fake:["vap","mip"],
     dict:["cat","fan","map","bag","tap"],
     sightList:3, sight:K_SIGHT[3].slice(),
-    questions:QUESTIONS.slice(),
+    questions:(DECS.a&&DECS.a[0]?DECS.a[0].q.slice():QUESTIONS.slice()),
     resources:["Dictated Words sheet","Sight Word Tracing Cards","Phonics Hand-Out"],
     results:{accuracy:"",strengths:"",reteach:"",next:""},
     notes:"", notesPrint:false,
@@ -512,7 +524,7 @@
     var first=(state.scholar.split(' ')[0]||state.scholar);
     var sz=wsSizes(state.grade);
     var who=whoBlock();
-    var story=(STORIES[state.skillKey]||[]).map(function(s){return '<span class="s apl">'+esc(s)+'</span>';}).join('');
+    var story=(decOf().s||[]).map(function(s){return '<span class="s apl">'+esc(s)+'</span>';}).join('');
     var readWords='<div class="cardgrid">'+state.blend.map(function(w){return '<span class="word apl">'+esc(w)+'</span>';}).join('')
        +state.fake.map(function(w){return '<span class="word fake apl">'+esc(w)+'</span>';}).join('')+'</div>';
     var spell=state.dict.map(function(w,i){return '<div class="spellrow"><div class="num">'+(i+1)+'.</div><div class="rule3"></div></div>';}).join('');
@@ -550,7 +562,7 @@
     var sz=wsSizes(state.grade); var who=whoBlock();
     var read=state.blend.slice(0,6).map(function(w){return '<span class="word apl">'+esc(w)+'</span>';}).join('');
     var writeRows=state.dict.slice(0,3).map(function(w){return '<div class="swrow"><div class="swlab apl">'+esc(w)+'</div><div class="rule3"><span class="tr apl">'+esc(w)+'</span></div><div class="rule3"></div></div>';}).join('');
-    var story=(STORIES[state.skillKey]||[]).map(function(s){return '<span class="s apl">'+esc(s)+'</span>';}).join('');
+    var story=(decOf().s||[]).map(function(s){return '<span class="s apl">'+esc(s)+'</span>';}).join('');
     var talk=state.questions.slice(0,2).map(function(q){return '<li class="apl" style="font-size:15px;margin:4px 0">'+esc(q)+'</li>';}).join('');
     var famNote='This week '+first+' is practicing '+state.skill+'. A few minutes each day makes a big difference &mdash; read the words together, practice writing, and read the little story out loud.';
     var w=document.getElementById('hw');
@@ -645,13 +657,13 @@
   function applyPreset(key){ var s=SKILLS[key]; if(!s) return;
     state.skillKey=key; state.skill=s.label; state.standard=s.std;
     state.blend=s.real.slice(0,4); state.fake=s.fake.slice(0,2); state.dict=s.dict.slice(0,5);
-    state.decodable=(DECODABLES[key]||[])[0]||s.dec;
+    state.decodable=(decList(key)[0]||{}).t||''; state.questions=decOf().q.slice();
     initFields(); fillDecodables(); paintAll(); paintSuggestions(); renderAll(); }
   // decodable dropdown
   var dc=document.getElementById('f_decodable');
-  function fillDecodables(){ var d=DECODABLES[state.skillKey]||[]; if(d.indexOf(state.decodable)<0) state.decodable=d[0]||'';
-    dc.innerHTML=d.map(function(t){return '<option'+(t===state.decodable?' selected':'')+'>'+esc(t)+'</option>';}).join(''); }
-  dc.addEventListener('change',function(){ state.decodable=this.value; renderAll(); });
+  function fillDecodables(){ var titles=decList().map(function(x){return x.t;}); if(titles.indexOf(state.decodable)<0){ state.decodable=titles[0]||''; }
+    dc.innerHTML=titles.map(function(t){return '<option'+(t===state.decodable?' selected':'')+'>'+esc(t)+'</option>';}).join(''); }
+  dc.addEventListener('change',function(){ state.decodable=this.value; state.questions=decOf().q.slice(); paintAll(); paintSuggestions(); renderAll(); });
   // ---- export: native Save as PDF (exact 8.5x11 per page) ----
   function toPDF(which){
     var run=function(){
