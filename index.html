@@ -1699,7 +1699,7 @@ function nav(screen){
   if(!staffOk()){ renderStaffGate(); return; }
   if(S.timer && screen!=="assess"){ clearInterval(S.timer); S.timer=null; }
   S.screen=screen; setNav(["home","scholars","scales","about"].includes(screen)?screen:((screen==="dashboard"||screen==="profile")?"scholars":"home"));
-  ({cloud:renderCloud,emails:renderFamilyEmails,rollup:renderRollup,litlesson:renderLitLesson,lessonbuilder:renderLessonBuilder,worksheets:renderLitWorksheets,home:renderHome,setup:renderSetup,intake:renderIntake,assess:renderAssess,results:renderResults,scholars:renderScholars,profile:renderScholarProfile,probe:renderProbe,weekedit:renderWeekEditor,lessonplan:renderLessonPlan,dashboard:renderDashboard,scales:renderScales,about:renderAbout}[screen]||renderHome)();
+  ({cloud:renderCloud,emails:renderFamilyEmails,rollup:renderRollup,litlesson:renderLitLesson,lessonbuilder:renderLessonBuilder,mathbuilder:renderMathLessonBuilder,worksheets:renderLitWorksheets,home:renderHome,setup:renderSetup,intake:renderIntake,assess:renderAssess,results:renderResults,scholars:renderScholars,profile:renderScholarProfile,probe:renderProbe,weekedit:renderWeekEditor,lessonplan:renderLessonPlan,dashboard:renderDashboard,scales:renderScales,about:renderAbout}[screen]||renderHome)();
   renderFooter();
   window.scrollTo(0,0);
 }
@@ -2410,7 +2410,7 @@ function renderScholarProfile(){
     <div class="card psec">
       <div class="eyebrow">Lesson Studio</div><h2>Pull ${esc(first)}'s phonics lesson</h2>
       <p class="lead">A ready-to-teach 30-minute lesson using your own phonics script &mdash; oral drill, blending board, new skill, dictation, sight words, and a decodable reader. The blending and dictation words come from ${esc(first)}'s target skill; the sight-word list is yours to set. Print it and teach from it.</p>
-      <div class="report-actions"><button class="btn" onclick="nav('lessonbuilder')">Open Lesson Builder</button><button class="btn ghost" onclick="nav('litlesson')">Quick Lesson Studio</button></div>
+      <div class="report-actions"><button class="btn" onclick="nav('lessonbuilder')">Open Lesson Builder</button><button class="btn" onclick="nav('mathbuilder')">Open Math Lesson Builder</button><button class="btn ghost" onclick="nav('litlesson')">Quick Lesson Studio</button></div>
     </div>
 
     ${lessonHistoryHTML(name)}
@@ -3309,6 +3309,42 @@ function renderLessonBuilder(){
     </div>
     <div class="card" style="padding:0;overflow:hidden">
       <iframe id="lbFrame" src="Lesson-Builder.html?${q}" title="Lesson Builder" style="width:100%;height:calc(100vh - 190px);min-height:760px;border:0;display:block"></iframe>
+    </div>
+  </div>`;
+  bindLessonMessages();
+}
+/* Pick a grade-appropriate default math preset for the Math Lesson Builder. */
+function mathSkillKey(grade){
+  const g=String(grade||'').toLowerCase();
+  if(g.indexOf('pre')>=0||g.indexOf('k')>=0) return 'ka5';
+  if(g.indexOf('1')>=0) return 'a20';
+  if(g.indexOf('2')>=0) return 'a2d';
+  if(g.indexOf('3')>=0) return 'mult';
+  if(g.indexOf('4')>=0) return 'mdmult';
+  if(g.indexOf('5')>=0) return 'addfrac';
+  return '';
+}
+/* Math Lesson Builder screen: parallel to the reading builder, seeded with this scholar. */
+function renderMathLessonBuilder(){
+  const name=S.profileName; if(!name){ nav('scholars'); return; }
+  const first=name.split(' ')[0];
+  const prof=getProfile(name)||{};
+  const sess=loadSessions().filter(s=>s.student===name).sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id));
+  const grade=(sess[0]&&sess[0].grade)||prof.grade||'';
+  const gl=grade?gradeLabel(grade):'';
+  const skillKey=mathSkillKey(gl||grade);
+  const q='scholar='+encodeURIComponent(name)
+    +'&grade='+encodeURIComponent(gl)
+    +'&email='+encodeURIComponent(prof.familyEmail||'')
+    +(skillKey?'&skillKey='+encodeURIComponent(skillKey):'');
+  app.innerHTML=`<div class="screen" id="mbScreen">
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div><div class="eyebrow">Math Lesson Builder</div><h2 style="margin:2px 0">${esc(first)}&rsquo;s math lesson</h2>
+        <p class="footnote" style="margin:2px 0 0">Build, edit, print, and close out ${esc(first)}&rsquo;s 30-minute math session. Autosaves as you go.</p></div>
+      <div class="report-actions"><button class="btn" onclick="nav('profile')">&larr; Back to ${esc(first)}&rsquo;s profile</button></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <iframe id="mbFrame" src="Math-Lesson-Builder.html?${q}" title="Math Lesson Builder" style="width:100%;height:calc(100vh - 190px);min-height:760px;border:0;display:block"></iframe>
     </div>
   </div>`;
   bindLessonMessages();
