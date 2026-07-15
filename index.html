@@ -2819,8 +2819,8 @@ function cloudCfg(){
   return (c&&c.url&&c.anon)?c:{url:CLOUD_DEFAULTS.url,anon:CLOUD_DEFAULTS.anon};
 }
 function saveCloudCfg(c){ save(CLOUD_KEY,c); }
-function migrated(){ return load(MIGRATED_KEY,{sessions:[],checks:[],plans:[]}); }
-function markMigrated(kind,id){ const m=migrated(); if(!m[kind].includes(id)){ m[kind].push(id); save(MIGRATED_KEY,m); } }
+function migrated(){ const m=load(MIGRATED_KEY,{}); if(!m.sessions)m.sessions=[]; if(!m.checks)m.checks=[]; if(!m.plans)m.plans=[]; if(!m.builders)m.builders=[]; return m; }
+function markMigrated(kind,id){ const m=migrated(); if(!m[kind])m[kind]=[]; if(!m[kind].includes(id)){ m[kind].push(id); save(MIGRATED_KEY,m); } }
 
 let _supa=null;
 function loadSupaLib(){
@@ -2937,7 +2937,7 @@ async function cloudMigrate(){
     }
     log.push(`evaluations: ${evs}`);
 
-    let chk=0, pl=0;
+    let chk=0, pl=0, bl=0;
     for(const k of Object.keys(profiles)){
       const p=profiles[k]; const sid=idByName[p.name]; if(!sid) continue;
       for(const c of (p.skillChecks||[])){
@@ -2957,8 +2957,18 @@ async function cloudMigrate(){
           if(error) throw error; markMigrated('plans',pid); pl++;
         }
       }
+      // Lesson Builder lessons -> lesson_plans rows tagged _kind:'builder'.
+      // Keyed by scholar|date|skill|savedAt so an edited lesson (new savedAt) pushes
+      // a fresh copy; the pull keeps the newest per date+skill.
+      for(const L of (p.lessonLog||[])){
+        const bkey=`${p.name}|${L.instrDate||''}|${L.skillKey||L.skill||''}|${L.savedAt||''}`;
+        if(migrated().builders.includes(bkey)) continue;
+        const {error}=await sb.from('lesson_plans').insert({owner_id:user.id,scholar_id:sid,
+          weeks:0, generated_on:(L.instrDate||fmtD(new Date())), plan:Object.assign({_kind:'builder'},L)});
+        if(error) throw error; markMigrated('builders',bkey); bl++;
+      }
     }
-    log.push(`skill checks: ${chk}`, `lesson plans: ${pl}`);
+    log.push(`skill checks: ${chk}`, `lesson plans: ${pl}`, `lessons: ${bl}`);
     alert('Migration complete —\n'+log.join('\n'));
   }catch(e){ alert('Migration stopped: '+(e.message||e)); }
   renderCloud();
@@ -2972,13 +2982,32 @@ async function cloudPull(){
     const {data:sch,error:e1}=await sb.from('scholars').select('*'); if(e1) throw e1;
     const {data:evs,error:e2}=await sb.from('evaluations').select('*').order('taken_on'); if(e2) throw e2;
     const {data:chks,error:e3}=await sb.from('skill_checks').select('*'); if(e3) throw e3;
+    let plans=[]; try{ const r=await sb.from('lesson_plans').select('*'); if(!r.error) plans=r.data||[]; }catch(e){}
     const byId={}; (sch||[]).forEach(s=>byId[s.id]=s);
+    const localProfiles=loadProfiles();
     const profiles={};
-    (sch||[]).forEach(s=>{ profiles[pkey(s.name)]={name:s.name,birthday:s.birthday||'',grade:s.grade||'',
-      iep:!!s.iep,plan504:!!s.plan504,accommodations:s.accommodations||[],sightList:s.sight_list||1,
-      skillChecks:[],updated:fmtD(new Date())}; });
+    // MERGE, don't overwrite: start from the existing local profile so device-only
+    // fields (uploaded documents, IEP text, weekly plans, in-progress work) survive a pull.
+    (sch||[]).forEach(s=>{ const key=pkey(s.name); const prev=localProfiles[key]||{};
+      profiles[key]=Object.assign({}, prev, {name:s.name,birthday:s.birthday||'',grade:s.grade||'',
+        iep:!!s.iep,plan504:!!s.plan504,accommodations:s.accommodations||[],sightList:s.sight_list||1,
+        skillChecks:[],updated:fmtD(new Date())}); });
     (chks||[]).forEach(c=>{ const s=byId[c.scholar_id]; if(!s) return;
       profiles[pkey(s.name)].skillChecks.push({skillId:c.skill_id,band:c.band,pct:c.pct,date:c.checked_on}); });
+    // Rebuild lessons + smart plan from the cloud (newest wins).
+    const bild={};
+    (plans||[]).forEach(row=>{ const s=byId[row.scholar_id]; if(!s) return; const key=pkey(s.name); const P=profiles[key]; if(!P) return;
+      const plan=row.plan||{};
+      if(plan._kind==='builder'){ const k=key+'|'+(plan.instrDate||'')+'|'+(plan.skillKey||plan.skill||'');
+        if(!bild[k] || (plan.savedAt||'')>(bild[k].savedAt||'')) bild[k]=plan; }
+      else { if(!P.lessonPlan || (row.generated_on||'')>=(P.lessonPlan.generated||'')) P.lessonPlan=plan; }
+    });
+    const byScholar={};
+    Object.keys(bild).forEach(k=>{ const key=k.split('|')[0]; (byScholar[key]=byScholar[key]||[]).push(bild[k]); });
+    Object.keys(byScholar).forEach(key=>{ if(!profiles[key]) return;
+      const log=byScholar[key].map(function(b){ var c=Object.assign({},b); delete c._kind; return c; })
+        .sort(function(a,b){ return (b.savedAt||'').localeCompare(a.savedAt||''); });
+      profiles[key].lessonLog=log; profiles[key].lessonLast=log[0]||null; });
     const sessions=(evs||[]).map(e=>({ id:e.id, student:(byId[e.scholar_id]||{}).name||'', grade:e.grade,
       domainKey:e.domain, module:e.module, form:e.form, phase:e.phase, date:e.taken_on,
       evaluator:e.evaluator||'', location:e.location||'', letterScale:e.letter_scale||'mixed',
@@ -2986,8 +3015,14 @@ async function cloudPull(){
       notes:e.notes||'', recommendations:e.recommendations||'', marks:e.marks||{}, fluency:e.fluency||{},
       timers:e.timers||{}, iprompts:e.prompts||{}, responses:e.responses||{}, result:e.result||{} }));
     save(PROFILE_STORE,profiles); save(STORE,sessions);
-    // anything pulled is already in the cloud
-    save(MIGRATED_KEY,{sessions:sessions.map(s=>s.id),checks:[],plans:[]});
+    // Record what is already in the cloud so the next push doesn't duplicate it.
+    const ckeys=[], pkeys=[], bkeys=[];
+    Object.keys(profiles).forEach(key=>{ const P=profiles[key];
+      (P.skillChecks||[]).forEach(c=>ckeys.push(`${P.name}|${c.skillId}|${c.date||''}`));
+      if(P.lessonPlan) pkeys.push(`${P.name}|${P.lessonPlan.generated||''}`);
+      (P.lessonLog||[]).forEach(L=>bkeys.push(`${P.name}|${L.instrDate||''}|${L.skillKey||L.skill||''}|${L.savedAt||''}`));
+    });
+    save(MIGRATED_KEY,{sessions:sessions.map(s=>s.id),checks:ckeys,plans:pkeys,builders:bkeys});
     alert(`Pulled ${sch.length} scholars and ${evs.length} evaluations from the cloud.`);
     renderCloud();
   }catch(e){ alert('Pull failed: '+(e.message||e)); }
