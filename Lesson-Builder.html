@@ -126,6 +126,13 @@
   .ws .cardgrid{ display:flex; flex-wrap:wrap; gap:10px; }
   .ws .word{ border:1.6px solid var(--ink); border-radius:9px; padding:6px 16px; font-size:var(--read); }
   .ws .word.fake{ border-style:dashed; }
+  /* optional rapid word chart (4x4) — review of known words/sounds */
+  .rphead{ display:flex; align-items:center; gap:10px; font-family:var(--disp,Georgia,serif); font-size:18px; margin:2px 0 3px; }
+  .rpbadge{ background:var(--ink); color:#fff; border-radius:999px; padding:3px 11px; font-size:13px; font-weight:bold; letter-spacing:.5px; }
+  .ws .rapidgrid{ display:grid; grid-template-columns:repeat(4,1fr); border:2px solid var(--ink); margin-top:6px; }
+  .ws .rapidcell{ border:1px solid #c9c2b0; text-align:center; padding:16px 6px; font-size:calc(var(--read) * 1.02); }
+  .rpscore{ margin-top:12px; padding-top:8px; border-top:1px solid #d9cda8; font-size:13px; color:var(--grey); }
+  .rpscore u{ display:inline-block; min-width:46px; }
   /* three-line handwriting rule: headline (light) / midline (dashed) / baseline (dark) */
   .ws .rule3{ position:relative; height:var(--hw); margin:8px 0 15px; border-top:1px solid #d8d8d8; border-bottom:2px solid #333; page-break-inside:avoid; }
   .ws .rule3:before{ content:""; position:absolute; left:0; right:0; top:50%; border-top:1px dashed #bfbfbf; }
@@ -241,6 +248,15 @@
         <div class="addrow"><input class="t" id="add_ques" placeholder="add a question"><button class="btn mini" data-add="ques">Add</button></div>
         <div class="sugg" id="s_ques"></div>
         <div class="hintline">Auto-filled with Who / What / Where / When / Why / How so you never start blank.</div>
+      </div>
+
+      <div class="grp">
+        <h3>Rapid word chart (optional warm-up)</h3>
+        <label class="f" style="display:flex;align-items:center;gap:7px;font-weight:normal"><input type="checkbox" id="f_rapidon" checked> Open the worksheet with a 4&times;4 rapid word chart</label>
+        <div class="hintline">A quick review grid of words &amp; sounds the scholar already knows &mdash; read across to warm up before new work.</div>
+        <div class="chips" id="c_rapid" style="margin-top:8px"></div>
+        <div class="addrow"><input class="t" id="add_rapid" placeholder="add a known word or sound"><button class="btn mini" data-add="rapid">Add</button></div>
+        <button class="btn mini" id="regenRapid" type="button" style="margin-top:6px">&#8635; New chart</button>
       </div>
 
       <div class="grp">
@@ -433,11 +449,22 @@
     sightList:3, sight:K_SIGHT[3].slice(),
     questions:(DECS.a&&DECS.a[0]?DECS.a[0].q.slice():QUESTIONS.slice()),
     resources:["Dictated Words sheet","Sight Word Tracing Cards","Phonics Hand-Out"],
+    rapidOn:true, rapid:[],
     results:{accuracy:"",strengths:"",reteach:"",next:""},
     notes:"", notesPrint:false,
     parentEmail:"parent.johnson@example.com", complete:false,
     homework:{status:"",notes:""}
   };
+  /* Optional Rapid Word Chart — a 4x4 grid of words/sounds the scholar already
+     knows, read across quickly to warm up automaticity before new work. */
+  function rapidDefault(){
+    var sounds=["m","s","a","t","p","n","i","d","f","o","c","b","r","h","e","g","l","u","k","j"];
+    var words=(state.sight||[]).concat(HEART_SUGG);
+    function shuf(a){ a=a.slice(); for(var j=a.length-1;j>0;j--){ var k=Math.floor(Math.random()*(j+1)); var t=a[j];a[j]=a[k];a[k]=t; } return a; }
+    var out=shuf(sounds).slice(0,8).concat(shuf(words).slice(0,8));
+    return shuf(out).slice(0,16);
+  }
+  state.rapid=rapidDefault();
   var SAMPLE=JSON.parse(JSON.stringify(state));
   /* In the app these come from the scholar roster and the evaluator list. */
   var ROSTER=[
@@ -537,14 +564,26 @@
     w.style.setProperty('--hw', sz.hw+'px'); w.style.setProperty('--story', sz.story+'px'); w.style.setProperty('--read', sz.read+'px');
     var titleWs='<div class="namebar" style="text-align:right;margin-bottom:4px">Name: <u></u> &nbsp; Date: <u></u></div>'
       +'<h1>'+esc(first)+"&rsquo;s Practice</h1><div class=\"wsub apl\">"+esc(state.skill)+'</div>';
-    var pg1=titleWs
-      +section(1,'Read the words','Read each word out loud. The dashed boxes are fake words.',readWords)
+    var pg1body=section(1,'Read the words','Read each word out loud. The dashed boxes are fake words.',readWords)
       +section(2,'Spell it','Listen to each word and write it on the line.',spell)
       +section(3,'Sight words','Trace the word, then write it on your own.',sights);
     var pg2=section(4,'Read the story &mdash; '+esc(state.decodable),'Read it two times. Circle the sound words and underline a sight word.',storyBlk)
       +section(5,'Answer the questions','Answer in a complete sentence.',qs);
     var pg3=section(6,'Draw your favorite part','Show what happened in the story.','<div class="drawbox"></div>');
-    w.innerHTML=pageShell(pg1,who,'ws',1,3)+pageShell(pg2,who,'ws',2,3)+pageShell(pg3,who,'ws',3,3);
+    var pages=[];
+    if(state.rapidOn){
+      var cells=(state.rapid||[]).map(function(x){return '<div class="rapidcell apl">'+esc(x)+'</div>';}).join('');
+      var rapidBlk='<div class="sec"><div class="rphead"><span class="rpbadge">&#9201; Warm-up</span> Rapid Word Chart &mdash; words &amp; sounds you know</div>'
+        +'<div class="dir" style="margin-left:0">Read across each row as fast and carefully as you can. Then go again and beat your time!</div>'
+        +'<div class="rapidgrid">'+cells+'</div>'
+        +'<div class="rpscore">Time: <u></u> &nbsp;&middot;&nbsp; Read correctly: <u></u> / '+(state.rapid||[]).length+'</div></div>';
+      pages.push(titleWs+rapidBlk);
+      pages.push(pg1body);
+    } else {
+      pages.push(titleWs+pg1body);
+    }
+    pages.push(pg2); pages.push(pg3);
+    w.innerHTML=pages.map(function(pg,i){ return pageShell(pg,who,'ws',i+1,pages.length); }).join('');
   }
   function lessonPayload(){ return {scholar:state.scholar,grade:state.grade,instructor:state.instructor,instrDate:state.instrDate,skill:state.skill,skillKey:state.skillKey,standard:state.standard,decodable:state.decodable,sightList:state.sightList,results:state.results,notes:state.notes,parentEmail:state.parentEmail,complete:!!state.complete,homework:state.homework}; }
   function postToParent(type,extra){ try{ if(window.parent && window.parent!==window){ window.parent.postMessage(Object.assign({type:type,lesson:lessonPayload()},extra||{}),'*'); } }catch(e){} }
@@ -591,6 +630,7 @@
     paintChips('c_sight',state.sight,false);
     paintChips('c_ques',state.questions,false);
     paintChips('c_res',state.resources,false);
+    paintChips('c_rapid',state.rapid,false);
   }
   function sugChips(listkey,cands){
     var have={}; state[listkey].forEach(function(w){have[String(w).toLowerCase()]=1;});
@@ -607,7 +647,7 @@
     document.getElementById('s_ques').innerHTML=sugChips('questions',QSUGG);
     document.getElementById('s_res').innerHTML=sugChips('resources',RES_SUGG);
   }
-  var LISTMAP={c_blend:'blend',c_fake:'fake',c_dict:'dict',c_sight:'sight',c_ques:'questions',c_res:'resources'};
+  var LISTMAP={c_blend:'blend',c_fake:'fake',c_dict:'dict',c_sight:'sight',c_ques:'questions',c_res:'resources',c_rapid:'rapid'};
   document.addEventListener('click',function(e){
     var t=e.target;
     var x=t.closest && t.closest('.x');
@@ -616,11 +656,13 @@
     if(sg){ var k=sg.getAttribute('data-sl'); var v=sg.getAttribute('data-v'); if(state[k].indexOf(v)<0){ state[k].push(v); paintAll(); paintSuggestions(); renderAll(); } return; }
     var add=t.closest && t.closest('[data-add]');
     if(add){ var which=add.getAttribute('data-add');
-      var map={blend:['add_blend','blend'],fake:['add_fake','fake'],dict:['add_dict','dict'],sight:['add_sight','sight'],ques:['add_ques','questions'],res:['add_res','resources']};
+      var map={blend:['add_blend','blend'],fake:['add_fake','fake'],dict:['add_dict','dict'],sight:['add_sight','sight'],ques:['add_ques','questions'],res:['add_res','resources'],rapid:['add_rapid','rapid']};
       var m=map[which]; var inp=document.getElementById(m[0]); var v=(inp.value||'').trim();
       if(v){ state[m[1]].push(v); inp.value=''; paintAll(); paintSuggestions(); renderAll(); } inp.focus(); }
   });
-  ['add_blend','add_fake','add_dict','add_sight','add_ques','add_res'].forEach(function(id){
+  document.getElementById('f_rapidon').addEventListener('change',function(){ state.rapidOn=this.checked; renderWs(); saveState(); });
+  document.getElementById('regenRapid').addEventListener('click',function(){ state.rapid=rapidDefault(); paintAll(); renderWs(); saveState(); });
+  ['add_blend','add_fake','add_dict','add_sight','add_ques','add_res','add_rapid'].forEach(function(id){
     document.getElementById(id).addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); var b=this.parentNode.querySelector('[data-add]'); b.click(); } });
   });
   // ---- text fields ----
@@ -658,6 +700,7 @@
     state.skillKey=key; state.skill=s.label; state.standard=s.std;
     state.blend=s.real.slice(0,4); state.fake=s.fake.slice(0,2); state.dict=s.dict.slice(0,5);
     state.decodable=(decList(key)[0]||{}).t||''; state.questions=decOf().q.slice();
+    state.rapid=rapidDefault();
     initFields(); fillDecodables(); paintAll(); paintSuggestions(); renderAll(); }
   // decodable dropdown
   var dc=document.getElementById('f_decodable');
@@ -733,6 +776,8 @@
     document.getElementById('f_why').value=state.why;
     document.getElementById('f_notes').value=state.notes;
     document.getElementById('f_notesprint').checked=state.notesPrint;
+    if(!state.rapid||!state.rapid.length) state.rapid=rapidDefault();
+    document.getElementById('f_rapidon').checked=(state.rapidOn!==false);
     document.getElementById('r_accuracy').value=state.results.accuracy;
     document.getElementById('r_strengths').value=state.results.strengths;
     document.getElementById('r_reteach').value=state.results.reteach;
