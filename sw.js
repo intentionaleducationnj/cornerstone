@@ -1,6 +1,6 @@
 /* Cornerstone service worker — offline app shell.
    Bump CACHE when the app shell changes to force an update. */
-const CACHE = 'cornerstone-v4';
+const CACHE = 'cornerstone-v5';
 const SHELL = [
   './', './index.html',
   './Lesson-Builder.html', './Math-Lesson-Builder.html',

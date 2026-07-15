@@ -188,6 +188,16 @@
   .ws .mprob{ padding:10px 4px; }
   .ws .mprob .pq{ font-size:var(--read); }
   .ws .mprob .pans{ height:26px; }
+  /* fast-facts 2-minute drill */
+  .ffhead{ display:flex; align-items:center; gap:10px; font-family:var(--disp,Georgia,serif); font-size:18px; margin:2px 0 2px; }
+  .ffbadge{ background:var(--ink); color:#fff; border-radius:999px; padding:3px 11px; font-size:13px; font-family:'Century Gothic','Arial',sans-serif; font-weight:bold; letter-spacing:.5px; }
+  .ws .ffgrid{ grid-template-columns:repeat(3,1fr); gap:0 20px; }
+  .ws .ffgrid .mprob{ padding:9px 4px; }
+  .ffscore{ margin-top:12px; padding-top:8px; border-top:1px solid var(--line); font-size:13.5px; color:var(--grey); font-family:'Century Gothic','Arial',sans-serif; }
+  .ffscore u{ display:inline-block; min-width:48px; }
+  /* word problems with ample solving space */
+  .wpq{ line-height:1.55; }
+  .wpbox{ border:1px dashed #bdb391; border-radius:8px; min-height:2.5in; margin:8px 0 14px; }
   .modelbox{ border:1.5px solid var(--line); border-radius:10px; background:var(--cream); padding:12px 14px; }
   .modelbox h4{ margin:0 0 6px; font-family:var(--disp,Georgia,serif); font-size:16px; }
   .modelbox .steps{ margin:6px 0 0; padding-left:18px; }
@@ -240,11 +250,15 @@
       </div>
 
       <div class="grp">
-        <h3>Fluency facts (Number Talk)</h3>
-        <div class="chips" id="c_flu"></div>
-        <div class="addrow"><input class="t" id="add_flu" placeholder="e.g. 3 + 2 ="><button class="btn mini" data-add="flu">Add</button></div>
+        <h3>Fast-facts warm-up (2-minute drill)</h3>
+        <label class="f">How many problems</label>
+        <select class="t" id="f_fastn"><option value="10">10</option><option value="12">12</option><option value="15" selected>15</option><option value="18">18</option><option value="20">20</option></select>
+        <div class="hintline">Auto-built from the target skill: <b id="f_famlabel">&mdash;</b></div>
+        <div class="addrow" style="margin-top:6px"><button class="btn mini" id="regenFacts" type="button">&#8635; New set of facts</button> <button class="btn mini" id="startTimer" type="button">&#9654; Start 2:00 timer</button> <span id="timerReadout" style="font-weight:bold;margin-left:4px;color:#2e7d32"></span></div>
+        <div class="chips" id="c_flu" style="margin-top:8px"></div>
+        <div class="hintline">A timed fast-facts drill prints on the worksheet. Remove any fact you don&rsquo;t want, or add a custom one:</div>
+        <div class="addrow"><input class="t" id="add_flu" placeholder="add a custom fact"><button class="btn mini" data-add="flu">Add</button></div>
         <div class="sugg" id="s_flu"></div>
-        <div class="hintline">Quick facts the scholar answers aloud to start warm.</div>
       </div>
 
       <div class="grp">
@@ -262,10 +276,13 @@
       </div>
 
       <div class="grp">
-        <h3>Word problem &amp; exit ticket</h3>
-        <label class="f">Word problem (auto-matched to the skill)</label>
-        <textarea class="t" id="f_word" style="min-height:70px"></textarea>
-        <label class="f" style="margin-top:6px">Exit ticket</label>
+        <h3>Word problems &amp; exit ticket</h3>
+        <label class="f">How many word problems</label>
+        <select class="t" id="f_wordn"><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option></select>
+        <div class="hintline">Auto-matched to the skill &mdash; each prints with a large box to solve in.</div>
+        <div class="addrow" style="margin-top:6px"><button class="btn mini" id="regenWords" type="button">&#8635; New word problems</button></div>
+        <div id="wordPreview" style="margin-top:8px;font-size:12px;color:#444;line-height:1.5"></div>
+        <label class="f" style="margin-top:8px">Exit ticket</label>
         <input class="t" id="f_exit" placeholder="one problem to check mastery">
       </div>
 
@@ -467,9 +484,9 @@
     ["addfrac","5 · Add/subtract fractions"],["dec","5 · Decimal operations"]
   ];
   var MATHPLAN=[
-    {mins:4,part:"Number Talk (fluency warm-up)",pull:"flu",script:[
-      "Flash the facts; the scholar answers aloud and explains one strategy.",
-      "Instructor will say: &ldquo;How did you solve it?&rdquo;"]},
+    {mins:4,part:"Fast-Facts Warm-Up (2-minute timed drill)",pull:"flu",script:[
+      "Set a 2-minute timer. The scholar completes the fast-facts drill on the worksheet &mdash; as many as they can.",
+      "Then review 1&ndash;2: &ldquo;How did you solve that one?&rdquo; Record the number correct."]},
     {mins:4,part:"Spiral Review",pull:"review",script:[
       "Quick review of a skill already at mastery to keep it warm.",
       "Instructor will say: &ldquo;Let&rsquo;s warm up what we already know.&rdquo;"]},
@@ -482,8 +499,8 @@
     {mins:6,part:"Independent Practice (you do)",pull:"pra",script:[
       "The scholar works problems while the instructor checks accuracy.",
       "Watch for the error pattern; reteach on the spot if needed."]},
-    {mins:3,part:"Word Problem & Exit Ticket",pull:"word",script:[
-      "Read the word problem together; the scholar shows the thinking.",
+    {mins:3,part:"Word Problems & Exit Ticket",pull:"word",script:[
+      "Read each word problem together; the scholar shows the thinking with a picture, numbers, and a sentence.",
       "The exit ticket checks mastery before the session ends."]}
   ];
   var CPA=[
@@ -513,14 +530,88 @@
     if(g.indexOf('k')>=0) return {hw:42,read:24};
     return {hw:40,read:22}; }
 
+  /* ============ FAST-FACTS + WORD-PROBLEM GENERATORS (skill-matched) ============ */
+  function ri(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
+  function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function factFamily(key){
+    var F={
+      kc10:{label:"Add 1 / add 0 within 10",gen:function(){ return ri(0,9)+" + "+(Math.random()<0.5?1:0)+" ="; }},
+      ka5:{label:"Addition within 5",gen:function(){ var s=ri(1,5),a=ri(0,s); return a+" + "+(s-a)+" ="; }},
+      ks5:{label:"Subtraction within 5",gen:function(){ var a=ri(1,5),b=ri(0,a); return a+" − "+b+" ="; }},
+      a20:{label:"Addition within 20",gen:function(){ var a=ri(1,9),b=ri(1,Math.min(9,20-a)); return a+" + "+b+" ="; }},
+      s20:{label:"Subtraction within 20",gen:function(){ var a=ri(6,20),b=ri(1,a); return a+" − "+b+" ="; }},
+      pv1:{label:"Tens facts (10 + n, T0 + o)",gen:function(){ return (Math.random()<0.5?("10 + "+ri(1,9)):(ri(2,9)*10+" + "+ri(1,9)))+" ="; }},
+      a2d:{label:"Addition facts within 20",gen:function(){ return ri(3,9)+" + "+ri(3,9)+" ="; }},
+      s2d:{label:"Subtraction facts within 20",gen:function(){ var a=ri(10,18),b=ri(2,9); return a+" − "+b+" ="; }},
+      arr:{label:"×2, ×5, ×10 facts",gen:function(){ return [2,5,10][ri(0,2)]+" × "+ri(1,10)+" ="; }},
+      mult:{label:"Multiplication facts",gen:function(){ return ri(2,12)+" × "+ri(2,12)+" ="; }},
+      div:{label:"Division facts",gen:function(){ var b=ri(2,10),q=ri(2,10); return (b*q)+" ÷ "+b+" ="; }},
+      frac:{label:"Multiplication facts (for fractions)",gen:function(){ return ri(2,10)+" × "+ri(2,10)+" ="; }},
+      mdmult:{label:"Multiplication facts",gen:function(){ return ri(2,12)+" × "+ri(2,12)+" ="; }},
+      ldiv:{label:"Division facts",gen:function(){ var b=ri(2,12),q=ri(2,12); return (b*q)+" ÷ "+b+" ="; }},
+      eqfrac:{label:"Multiplication facts",gen:function(){ return ri(2,12)+" × "+ri(2,12)+" ="; }},
+      addfrac:{label:"Multiplication facts",gen:function(){ return ri(2,12)+" × "+ri(2,12)+" ="; }},
+      dec:{label:"Addition & subtraction within 20",gen:function(){ if(Math.random()<0.5) return ri(3,9)+" + "+ri(3,9)+" ="; var a=ri(10,18),b=ri(2,9); return a+" − "+b+" ="; }}
+    };
+    return F[key]||F.ka5;
+  }
+  function genFacts(key,n){ var fam=factFamily(key),out=[],seen={},g=0;
+    while(out.length<n && g<n*40){ g++; var p=fam.gen(); if(!seen[p]){ seen[p]=1; out.push(p); } } return out; }
+
+  var WP_NAMES=["Amara","Marcus","Sofia","Deja","Kofi","Nia","Leo","Priya","Diego","Mei","Elena","Jamal","Aisha","Omar","Tessa","Rosa","Dev","Amir"];
+  var WP_ITEMS=["apples","stickers","blocks","books","marbles","crayons","cookies","pencils","shells","cards","grapes","buttons"];
+  function wpCat(key){ var M={ kc10:["add",1,5],ka5:["add",1,5],ks5:["sub",1,5],a20:["add",3,12],s20:["sub",5,18],
+    pv1:["pv",0,0],a2d:["add",15,59],s2d:["sub",25,89],arr:["mul",2,6],mult:["mul",2,12],div:["div",2,10],
+    frac:["frac",0,0],mdmult:["mul",12,49],ldiv:["div",6,12],eqfrac:["frac",0,0],addfrac:["fracadd",0,0],dec:["money",0,0] };
+    return M[key]||["add",1,10]; }
+  function genWordProblems(key,n){
+    var s=wpCat(key),op=s[0],lo=s[1],hi=s[2],out=[],seen={},g=0;
+    while(out.length<n && g<n*60){ g++; var nm=pick(WP_NAMES),it=pick(WP_ITEMS),q="";
+      if(op==="add"){ var a=ri(lo,hi),b=ri(lo,hi);
+        q=pick([nm+" had "+a+" "+it+" and got "+b+" more. How many "+it+" in all?",
+          "There were "+a+" "+it+" on the shelf and "+b+" more on the table. How many altogether?",
+          nm+" counted "+a+" red "+it+" and "+b+" blue "+it+". How many "+it+" in all?",
+          nm+" read "+a+" pages, then "+b+" more pages. How many pages in all?"]); }
+      else if(op==="sub"){ var a=ri(Math.max(lo+1,3),hi),b=ri(1,a-1);
+        q=pick([nm+" had "+a+" "+it+" and gave away "+b+". How many are left?",
+          "There were "+a+" "+it+". "+b+" were used. How many are left?",
+          nm+" had "+a+" "+it+" and lost "+b+". How many are left now?",
+          a+" birds sat on a wire. "+b+" flew away. How many stayed?"]); }
+      else if(op==="mul"){ var a=ri(lo,hi),b=ri(2,9);
+        q=pick([nm+" has "+a+" bags with "+b+" "+it+" in each. How many "+it+" in all?",
+          "There are "+a+" rows of "+b+" chairs. How many chairs in all?",
+          nm+" bought "+a+" packs of "+b+" "+it+". How many "+it+"?",
+          "Each box holds "+b+" "+it+". How many are in "+a+" boxes?"]); }
+      else if(op==="div"){ var b=ri(2,hi),qn=ri(2,9),a=b*qn;
+        q=pick([nm+" shares "+a+" "+it+" equally among "+b+" friends. How many does each friend get?",
+          a+" students sit at "+b+" tables with the same number at each. How many at each table?",
+          a+" "+it+" are packed into bags of "+b+". How many bags are there?"]); }
+      else if(op==="pv"){ var t=ri(2,6),o=ri(1,9);
+        q=pick([nm+" has "+t+" bags of 10 "+it+" and "+o+" loose "+it+". How many "+it+" in all?",
+          nm+" counted "+t+" tens and "+o+" ones. What number did "+nm+" make?"]); }
+      else if(op==="frac"){ var d=pick([2,3,4,6,8]),num=ri(1,d-1);
+        q=pick([nm+" ate "+num+"/"+d+" of a pizza. What fraction did "+nm+" eat?",
+          "A ribbon is 1 meter long. "+nm+" cut it at the "+num+"/"+d+" mark. Where on a 0 to 1 number line is the cut?",
+          nm+" colored "+num+" of "+d+" equal parts. Write the fraction that is colored."]); }
+      else if(op==="fracadd"){ var d1=pick([2,3,4]),d2=pick([3,4,6]),n1=ri(1,d1-1),n2=ri(1,d2-1);
+        q=pick([nm+" walked "+n1+"/"+d1+" mile, then "+n2+"/"+d2+" mile. How far did "+nm+" walk in all?",
+          nm+" read "+n1+"/"+d1+" of a book on Monday and "+n2+"/"+d2+" on Tuesday. How much did "+nm+" read in all?"]); }
+      else if(op==="money"){ var aN=ri(20,95)/10, bN=ri(10,Math.round(aN*10)-5)/10, a=aN.toFixed(1), b=bN.toFixed(1);
+        q=pick([nm+" bought a snack for $"+a+" and a drink for $"+b+". How much did "+nm+" spend in all?",
+          nm+" had $"+a+" and spent $"+b+". How much money is left?"]); }
+      if(q && !seen[q]){ seen[q]=1; out.push(q); } }
+    return out;
+  }
+
   var state={
     subject:"math", skillKey:"ka5",
     scholar:"Amara Johnson", grade:"Kindergarten", instructor:"Jaci Chartier",
     instrDate:new Date().toISOString().slice(0,10),
     skill:"Addition within 5", standard:"CCSS K.OA.1",
     why:"Flagged at 60% on the most recent math skill check — below the 80% mastery line.",
-    flu:MSKILLS.ka5.flu.slice(), gui:MSKILLS.ka5.gui.slice(), pra:MSKILLS.ka5.pra.slice(),
-    word:MSKILLS.ka5.word, exit:MSKILLS.ka5.exit,
+    fastN:15, fastSec:120,
+    flu:genFacts("ka5",15), gui:MSKILLS.ka5.gui.slice(), pra:MSKILLS.ka5.pra.slice(),
+    wordN:4, words:genWordProblems("ka5",4), exit:MSKILLS.ka5.exit,
     resources:["Counters","Ten-frame mat","Dry-erase board"],
     results:{accuracy:"",strengths:"",reteach:"",next:""},
     notes:"", notesPrint:false,
@@ -571,12 +662,12 @@
   }
   function contentFor(pull){
     var k=mk();
-    if(pull==='flu') return chips(state.flu);
+    if(pull==='flu') return '<b>'+esc(factFamily(state.skillKey).label)+'</b> &middot; '+state.flu.length+' fast facts<div class="fn" style="margin-top:2px">Timed 2-minute drill on the worksheet. Count how many are correct.</div>';
     if(pull==='review') return '<i class="fn">Spiral a skill already at 80%+ mastery (facts, place value, or a prior operation).</i>';
     if(pull==='model') return '<b>'+esc(k.model.prob)+'</b>'+(state.standard?' <span class="fn">'+esc(state.standard)+'</span>':'')+'<div class="fn" style="margin-top:2px">Concrete &rarr; pictorial &rarr; abstract.</div>';
     if(pull==='gui') return chips(state.gui);
     if(pull==='pra') return chips(state.pra);
-    if(pull==='word') return '<div>'+esc(state.word)+'</div><div class="fn" style="margin-top:3px"><b>Exit ticket:</b> '+esc(state.exit)+'</div>';
+    if(pull==='word') return '<div>'+state.words.length+' word problems on the worksheet (ample space to solve).</div>'+state.words.slice(0,2).map(function(q){return '<div class="fn" style="margin-top:3px">&bull; '+esc(q)+'</div>';}).join('')+'<div class="fn" style="margin-top:3px"><b>Exit ticket:</b> '+esc(state.exit)+'</div>';
     return '';
   }
   function renderDoc(){
@@ -634,14 +725,29 @@
       +'<div class="fn" style="margin-top:6px">Build it, draw it, then write the numbers.</div></div>';
     var titleWs='<div class="namebar" style="text-align:right;margin-bottom:4px">Name: <u></u> &nbsp; Date: <u></u></div>'
       +'<h1>'+esc(first)+"&rsquo;s Math Practice</h1><div class=\"wsub apl\">"+esc(state.skill)+'</div>';
+    // Fast-facts 2-minute drill (3-column grid)
+    var min=Math.floor((state.fastSec||120)/60), sec=(state.fastSec||120)%60;
+    var timeStr=min+':'+(sec<10?'0':'')+sec;
+    var ffGrid='<div class="mgrid ffgrid">'+state.flu.map(function(p,i){ return '<div class="mprob"><span class="pn">'+(i+1)+'.</span><span class="pq apl">'+esc(p)+'</span><span class="pans"></span></div>'; }).join('')+'</div>';
+    var ffScore='<div class="ffscore">Number correct: <u></u> / '+state.flu.length+' &nbsp;&nbsp;&middot;&nbsp;&nbsp; Time used: <u></u></div>';
+    var ffHead='<div class="ffhead"><span class="ffbadge">&#9201; '+timeStr+'</span> 2-Minute Fast Facts &mdash; '+esc(factFamily(state.skillKey).label)+'</div>';
     var pg1=titleWs
-      +section(1,'Warm-up facts','Solve each fact. Say your strategy out loud.',probGrid(state.flu))
-      +section(2,'Watch and learn','Your teacher will model this with you.',modelBox);
-    var pg2=section(3,'Practice','Solve each problem. Show your work in the box if you need to.',probGrid(state.pra))
-      +'<div class="workbox"></div>';
-    var pg3=section(4,'Word problem','Read it two times. Show your thinking with a picture, numbers, and a sentence.','<div class="storywrap"><div style="font-size:'+Math.max(15,sz.read-3)+'px;line-height:1.7" class="apl">'+esc(state.word)+'</div></div><div class="workbox"></div>')
-      +section(5,'Exit ticket','Solve on your own to show you’ve got it.','<div class="mprob" style="border:0"><span class="pq apl" style="font-size:'+sz.read+'px">'+esc(state.exit)+'</span><span class="pans" style="height:30px"></span></div><div class="workbox" style="min-height:1.3in"></div>');
-    w.innerHTML=pageShell(pg1,who,'ws',1,3)+pageShell(pg2,who,'ws',2,3)+pageShell(pg3,who,'ws',3,3);
+      +'<div class="sec"><div class="sechd"><span class="step">1</span><span class="sectitle">Fast facts</span></div>'
+      +ffHead+'<div class="dir">Answer as many as you can in two minutes. Ready, set, go!</div>'+ffGrid+ffScore+'</div>';
+    var pg2=section(2,'Watch and learn','Your teacher will model this with you.',modelBox)
+      +section(3,'Practice','Solve each problem. Show your work in the box if you need to.',probGrid(state.pra));
+    // Word-problem pages: 2 per page, each with a large solving box
+    var wsz=Math.max(15,sz.read-3);
+    var wpBlocks=state.words.map(function(q,i){
+      return '<div class="sec"><div class="sechd"><span class="step">'+(i+1)+'</span><span class="sectitle">Word problem '+(i+1)+'</span></div>'
+        +'<div class="wpq apl" style="font-size:'+wsz+'px">'+esc(q)+'</div><div class="wpbox"></div></div>';
+    });
+    var wpPages=[]; for(var wi=0;wi<wpBlocks.length;wi+=2){
+      var head=(wi===0)?'<div class="ffhead" style="margin-bottom:8px">Word Problems &mdash; show your thinking</div>':'';
+      wpPages.push(head+wpBlocks.slice(wi,wi+2).join('')); }
+    var pgExit=section(1,'Exit ticket','Solve on your own to show you’ve got it.','<div class="mprob" style="border:0"><span class="pq apl" style="font-size:'+sz.read+'px">'+esc(state.exit)+'</span><span class="pans" style="height:30px"></span></div><div class="workbox" style="min-height:1.4in"></div>');
+    var pages=[pg1,pg2].concat(wpPages,[pgExit]);
+    w.innerHTML=pages.map(function(pg,i){ return pageShell(pg,who,'ws',i+1,pages.length); }).join('');
   }
   function lessonPayload(){ return {subject:'math',scholar:state.scholar,grade:state.grade,instructor:state.instructor,instrDate:state.instrDate,skill:state.skill,skillKey:state.skillKey,standard:state.standard,results:state.results,notes:state.notes,parentEmail:state.parentEmail,complete:!!state.complete,homework:state.homework}; }
   function postToParent(type,extra){ try{ if(window.parent && window.parent!==window){ window.parent.postMessage(Object.assign({type:type,lesson:lessonPayload()},extra||{}),'*'); } }catch(e){} }
@@ -659,14 +765,14 @@
     var sz=wsSizes(state.grade); var who=whoBlock(); var k=mk();
     var w=document.getElementById('hw');
     w.style.setProperty('--disp', dispStack()); w.style.setProperty('--hw', sz.hw+'px'); w.style.setProperty('--read', sz.read+'px');
-    var facts=state.flu.slice(0,4).concat(state.pra.slice(0,2));
+    var facts=state.flu.slice(0,9);
     var famNote='This week '+first+' is practicing '+state.skill+'. A few minutes each day makes a big difference &mdash; do the facts together, solve the problems, and talk through the word problem out loud.';
     var title='<div class="wsub" style="text-align:center;color:var(--gold);font-weight:bold;text-transform:uppercase;letter-spacing:1.5px;font-size:11px;font-style:normal">Home Practice</div>'
       +'<h1>'+esc(first)+"&rsquo;s Math Home Practice</h1><div class=\"wsub apl\">"+esc(state.skill)+'</div>';
     var body=title
       +'<div class="storywrap" style="border-left:4px solid var(--gold);background:#fbf8f0"><b>Family note:</b> '+famNote+'</div>'
-      +section(1,'Practice these every day','Solve each one and say the strategy.',probGrid(facts))
-      +section(2,'Word problem','Read it together, then show the thinking.','<div class="storywrap"><div class="apl" style="font-size:'+Math.max(15,sz.read-4)+'px;line-height:1.7">'+esc(state.word)+'</div></div><div class="workbox" style="min-height:1.4in"></div>')
+      +section(1,'Fast facts — time yourself!','Set a 2-minute timer and see how many you can finish. Do it every day.',probGrid(facts))
+      +section(2,'Word problem','Read it together, then show the thinking.','<div class="storywrap"><div class="apl" style="font-size:'+Math.max(15,sz.read-4)+'px;line-height:1.7">'+esc(state.words[0]||'')+'</div></div><div class="workbox" style="min-height:1.6in"></div>')
       +section(3,'Grown-up checklist','','<div style="font-size:14px;line-height:2.1"><div>&#9744; We did the facts</div><div>&#9744; We solved the problems</div><div>&#9744; We talked through the word problem</div></div><div class="dir" style="margin:8px 0 0 0">How did it go? <span style="display:inline-block;border-bottom:1px solid #999;min-width:60%;height:16px"></span></div>');
     w.innerHTML=pageShell(body,who,'ws',1,1);
   }
@@ -709,7 +815,20 @@
   function bind(id,key){ var el=document.getElementById(id); el.value=state[key]; el.addEventListener('input',function(){ state[key]=el.value; renderAll(); }); }
   bind('f_grade','grade');
   bind('f_skill','skill'); bind('f_standard','standard'); bind('f_why','why'); bind('f_notes','notes');
-  bind('f_word','word'); bind('f_exit','exit');
+  bind('f_exit','exit');
+  /* ---- fast-facts + word-problem controls ---- */
+  function updateFluMeta(){ var fl=document.getElementById('f_famlabel'); if(fl) fl.textContent=factFamily(state.skillKey).label;
+    var wp=document.getElementById('wordPreview'); if(wp) wp.innerHTML=state.words.map(function(q,i){return '<div style="margin:0 0 5px">'+(i+1)+'. '+esc(q)+'</div>';}).join(''); }
+  var _mtmr=null;
+  document.getElementById('f_fastn').addEventListener('change',function(){ state.fastN=+this.value; state.flu=genFacts(state.skillKey,state.fastN); paintAll(); paintSuggestions(); renderAll(); });
+  document.getElementById('regenFacts').addEventListener('click',function(){ state.flu=genFacts(state.skillKey,state.fastN); paintAll(); paintSuggestions(); renderAll(); });
+  document.getElementById('startTimer').addEventListener('click',function(){
+    var el=document.getElementById('timerReadout'); if(_mtmr){ clearInterval(_mtmr); _mtmr=null; }
+    var t=state.fastSec||120; var tick=function(){ var m=Math.floor(t/60),s=t%60; el.textContent=m+':'+(s<10?'0':'')+s;
+      if(t<=0){ clearInterval(_mtmr); _mtmr=null; el.textContent="Time!"; return; } t--; };
+    tick(); _mtmr=setInterval(tick,1000); });
+  document.getElementById('f_wordn').addEventListener('change',function(){ state.wordN=+this.value; state.words=genWordProblems(state.skillKey,state.wordN); updateFluMeta(); renderAll(); });
+  document.getElementById('regenWords').addEventListener('click',function(){ state.words=genWordProblems(state.skillKey,state.wordN); updateFluMeta(); renderAll(); });
   var scSel=document.getElementById('f_scholar');
   scSel.innerHTML=ROSTER.map(function(r){return '<option value="'+esc(r.name)+'"'+(r.name===state.scholar?' selected':'')+'>'+esc(r.name)+' ('+esc(r.grade)+')</option>';}).join('');
   scSel.addEventListener('change',function(){ var v=this.value, r=null; for(var i=0;i<ROSTER.length;i++){ if(ROSTER[i].name===v){ r=ROSTER[i]; break; } } state.scholar=v; if(r){ state.grade=r.grade; document.getElementById('f_grade').value=r.grade; } renderAll(); });
@@ -730,8 +849,8 @@
   function applyPreset(key){ var s=MSKILLS[key]; if(!s) return;
     state.skillKey=key; state.skill=s.label; state.standard=s.std;
     if(s.grade){ state.grade=s.grade; }
-    state.flu=s.flu.slice(); state.gui=s.gui.slice(); state.pra=s.pra.slice();
-    state.word=s.word; state.exit=s.exit;
+    state.flu=genFacts(key,state.fastN||15); state.gui=s.gui.slice(); state.pra=s.pra.slice();
+    state.words=genWordProblems(key,state.wordN||4); state.exit=s.exit;
     initFields(); paintAll(); paintSuggestions(); renderAll(); }
   function toPDF(which){
     var run=function(){ document.body.className=which; window.print(); setTimeout(function(){ document.body.className=''; }, 900); };
@@ -792,8 +911,10 @@
     document.getElementById('f_skill').value=state.skill;
     document.getElementById('f_standard').value=state.standard;
     document.getElementById('f_why').value=state.why;
-    document.getElementById('f_word').value=state.word;
     document.getElementById('f_exit').value=state.exit;
+    if(state.fastN) document.getElementById('f_fastn').value=state.fastN;
+    if(state.wordN) document.getElementById('f_wordn').value=state.wordN;
+    updateFluMeta();
     document.getElementById('f_notes').value=state.notes;
     document.getElementById('f_notesprint').checked=state.notesPrint;
     document.getElementById('r_accuracy').value=state.results.accuracy;
