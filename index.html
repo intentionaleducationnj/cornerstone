@@ -3298,10 +3298,7 @@ function formalLessonHTML(name){
 }
 function openFormalLesson(){
   const name=S.profileName; if(!name){ nav('scholars'); return; }
-  const w=window.open('','_blank');
-  if(!w){ alert('Please allow pop-ups so the formal lesson plan can open, then use Save as PDF.'); return; }
-  w.document.open(); w.document.write(formalLessonHTML(name)); w.document.close(); w.focus();
-  setTimeout(function(){ try{ w.print(); }catch(e){} }, 450);
+  printHTMLDoc(formalLessonHTML(name));
 }
 /* ---- Lesson Builder <-> tool bridge: persist lessons to the scholar profile ---- */
 function saveLessonToProfile(lesson){
@@ -3541,7 +3538,7 @@ function buildLessonPlanHTML(name){
   <div class="foot">Intentional Education &middot; ${BRAND.tagline} &middot; Cornerstone Assessment</div>
   </body></html>`;
 }
-function printLessonPlan(enc){ const name=decodeURIComponent(enc); const html=buildLessonPlanHTML(name); if(!html){ alert('Generate the lesson plan first.'); return; } const w2=window.open("","_blank"); if(!w2){ alert('Please allow pop-ups to print the lesson plan.'); return; } w2.document.write(html); w2.document.close(); setTimeout(()=>{ try{ w2.focus(); w2.print(); }catch(e){} },350); }
+function printLessonPlan(enc){ const name=decodeURIComponent(enc); const html=buildLessonPlanHTML(name); if(!html){ alert('Generate the lesson plan first.'); return; } printHTMLDoc(html); }
 function filterScholars(q){ q=(q||'').toLowerCase(); document.querySelectorAll('#schgrid .schcard').forEach(c=>{ c.style.display=c.dataset.name.indexOf(q)>=0?'':'none'; }); }
 function startNextFor(id){ const last=loadSessions().find(s=>s.id===id); startSession(last?last.domainKey:'literacy'); const ss=S.session; if(last){ ss.student=last.student; ss.birthday=last.birthday||''; ss.grade=last.grade; ss.iep=!!last.iep; ss.plan504=!!last.plan504; ss.accommodations=(last.accommodations||[]).slice(); if(last.birthday) ss.autoPlaced=true; } renderSetup(); }
 
@@ -4723,12 +4720,21 @@ function buildFamilyEvidenceHTML(){
   <div class="foot">Intentional Education &middot; ${BRAND.tagline} &middot; Questions? We are always glad to talk through your scholar's results.</div>
   </body></html>`;
 }
-function printFamilyEvidence(){
-  const w2=window.open("","_blank");
-  if(!w2){ alert("Please allow pop-ups for this page, then click again to open the family handout."); return; }
-  w2.document.write(buildFamilyEvidenceHTML()); w2.document.close();
-  setTimeout(()=>{ try{ w2.focus(); w2.print(); }catch(e){} }, 350);
+/* Print a standalone HTML document. Tries a new window first; if that is blocked
+   (the usual case in the installed iPad app), falls back to a hidden iframe so
+   printing / Save-as-PDF still works from the Home-Screen app. */
+function printHTMLDoc(html){
+  let w=null; try{ w=window.open('','_blank'); }catch(e){}
+  if(w && w.document){ w.document.write(html); w.document.close(); setTimeout(function(){ try{ w.focus(); w.print(); }catch(e){} }, 350); return; }
+  const f=document.createElement('iframe');
+  f.setAttribute('aria-hidden','true');
+  f.style.cssText='position:fixed;right:0;bottom:0;width:1px;height:1px;opacity:0;border:0';
+  document.body.appendChild(f);
+  const d=f.contentWindow.document; d.open(); d.write(html); d.close();
+  const go=function(){ try{ f.contentWindow.focus(); f.contentWindow.print(); }catch(e){} setTimeout(function(){ try{ f.remove(); }catch(e){} }, 1500); };
+  if(d.readyState==='complete'){ setTimeout(go,300); } else { f.onload=function(){ setTimeout(go,300); }; }
 }
+function printFamilyEvidence(){ printHTMLDoc(buildFamilyEvidenceHTML()); }
 /* ===================================================================
    11. BOOT
    =================================================================== */
